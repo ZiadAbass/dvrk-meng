@@ -1,0 +1,25 @@
+controller_list:
+  - name: fake_psm_arm_controller
+    joints:
+      - psm_yaw_joint
+      - psm_pitch_joint
+      - psm_main_insertion_joint
+      - psm_tool_roll_joint
+      - psm_tool_pitch_joint
+      - psm_tool_yaw_joint
+  - name: fake_psm_gripper_controller
+    joints:
+      - psm_tool_yaw_joint
+      - psm_tool_gripper2_joint
+  - name: fake_psm_whole_controller
+    joints:
+      - psm_yaw_joint
+      - psm_pitch_joint
+      - psm_main_insertion_joint
+      - psm_tool_roll_joint
+      - psm_tool_pitch_joint
+      - psm_tool_yaw_joint
+      - psm_tool_gripper2_joint
+initial:  # Define initial robot poses.
+  - group: psm_arm
+    pose: zrandom
