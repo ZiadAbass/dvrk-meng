@@ -1,3 +1,7 @@
+'''
+Playing around with the moveit_commander library for the first time
+'''
+
 import sys
 import copy
 import rospy
