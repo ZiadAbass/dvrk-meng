@@ -5,7 +5,6 @@ First trial to plan and execute a series of trajectories through a python script
 TODO
 - Find how to control speed through dvrk package
 - How will the acceleration/velocity lists fit in?
-- Interpolate to add more waypoints
 '''
 
 # import both dvrk and moveit_commander (MC)
@@ -57,10 +56,14 @@ def init_dvrk_mc():
     return p,group
 
 # set_mc_start_state() uses the RobotState template to set the start position of the robot from the 
-# move_commande's perspective. Takes in a list of 6 joint angles.
-def set_mc_start_state(joint_angles):
+# move_commande's perspective. It always sets the starting point of the moveit_commander to the current position of the simulated robot in the dvrk library.
+# takes in the dvrk PSM object
+def update_mc_start_state(p):
+    # obtain current joint angles from dvrk (list of 6 angles)
+    curr_joint_pos = p.get_current_joint_position()
+    # print('Current joint position:', curr_joint_pos)
     # define the required start position angles
-    start_state.joint_state.position = joint_angles
+    start_state.joint_state.position = curr_joint_pos
     # start_state.is_diff = True
     group.set_start_state(start_state)
 
@@ -69,6 +72,16 @@ def set_mc_start_state(joint_angles):
 def set_named_target_and_plan(target_name):
     # set a goal position
     group.set_named_target(target_name)
+    ### plan a traj using mc
+    traj_plan = group.plan()
+    return traj_plan
+
+# set_joint_target_and_plan() takes in a list of 6 angle values represnting a configuration and plans its path,
+# returning the RobotTrajectory object
+def set_joint_target_and_plan(joint_config):
+    # set a goal configuration
+    print('setting', joint_config)
+    group.set_joint_value_target(np.array(joint_config))
     ### plan a traj using mc
     traj_plan = group.plan()
     return traj_plan
@@ -124,24 +137,11 @@ def interpolate(points, total_points):
 
     return extended_points
 
-
-if __name__ == '__main__':
-    # initialise the required objects
-    p,group = init_dvrk_mc()
-
-    ### move robot to home position
-    raw_input('Initialisation completed. Press ENTER to home the PSM')
-    p.home()
-    time.sleep(1)
-
-    ### obtain current joint angles from dvrk (list of 6 angles)
-    curr_joint_pos = p.get_current_joint_position()
-    print('Current joint position:', curr_joint_pos)
-
-    # ------------- # GO TO ZRANDOM # ------------- #
-    
+# goto_named_config() plans and executes a trajectory towards a given named configuration
+# also takes in `total_points` total number of points to include in the final trajectory after interpolation
+def goto_named_config(p,target_name,total_points):
     ### set current angles as starting point in mc space
-    set_mc_start_state(curr_joint_pos)
+    update_mc_start_state(p)
 
     ### set a goal position
     traj_plan = set_named_target_and_plan('zrandom')
@@ -157,13 +157,14 @@ if __name__ == '__main__':
     for pos in extended_points:
         p.move_joint(np.array(pos), interpolate = False)
 
-    # ------------- # GO TO ZHOME # ------------- #
-
+# goto_named_config() plans and executes a trajectory towards a given angle configuration
+# also takes in `total_points` total number of points to include in the final trajectory after interpolation
+def goto_angle_config(p,target_angles,total_points):
     ### set current angles as starting point in mc space
-    set_mc_start_state(curr_joint_pos)
+    update_mc_start_state(p)
 
     ### set a goal position
-    traj_plan = set_named_target_and_plan('zhome')
+    traj_plan = set_joint_target_and_plan(target_angles)
 
     # take only the position angles from the plan
     pure_positions = extract_pos_from_plan(traj_plan)
@@ -175,6 +176,28 @@ if __name__ == '__main__':
     ### use the dvrk library to follow the list of joint angles and perform the traj
     for pos in extended_points:
         p.move_joint(np.array(pos), interpolate = False)
+
+
+if __name__ == '__main__':
+    # initialise the required objects
+    p,group = init_dvrk_mc()
+
+    ### move robot to home position
+    raw_input('Initialisation completed. Press ENTER to home the PSM')
+    p.home()
+    time.sleep(1)
+
+    # ------------- # GO TO ZRANDOM # ------------- #
+    goto_named_config(p,'zrandom', 7000)
+
+    # ------------- # GO TO ZHOME # ------------- #
+    # goto_named_config(p,'zhome', 7000)
+
+    # ------------- # GO TO ANGLE # ------------- #
+    new_goal = [0,0,0,0,0,0]
+    goto_angle_config(p,new_goal,7000)
+
+    # ------------- # ---------- # ------------- #
 
     raw_input('Press enter to shutdown')
     ### Stop providing power to the arm
