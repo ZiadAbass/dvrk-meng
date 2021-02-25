@@ -19,7 +19,6 @@ import copy
 import rospy
 import numpy as np
 import time
-# import PyKDL
 
 # create a RobotState template instead of initialising a new one each time
 # initialise a RobotState object
@@ -199,6 +198,23 @@ def read_display_dvrk_pos(p,verbose=False):
     if verbose:
         print "\n=-=-=-=-=-=-=\nCurrent XYZ position:", np.round(curr_pos.p[0],4), np.round(curr_pos.p[1],4), np.round(curr_pos.p[2],4),"\n=-=-=-=-=-=-=\n"
     return curr_pos.p
+
+# read_display_dvrk_rot() reads and returns the PSM's current rotation 
+# from the dvrk library's perspective. Can optionally display it too if verbose is true.
+def read_display_dvrk_rot(p,verbose=False):
+    curr = p.get_current_position()
+    if verbose:
+        print "\n=-=-=-=-=-=-=\nCurrent Rotation:", curr.M,"\n=-=-=-=-=-=-=\n"
+    return curr.M
+
+# read_display_dvrk_angles() reads and returns the PSM's current joint states 
+# from the dvrk library's perspective. Can optionally display it too if verbose is true.
+def read_display_dvrk_angles(p,verbose=False):
+    curr_joint_pos = p.get_current_joint_position()
+    if verbose:
+        print "\n=-=-=-=-=-=-=\nCurrent Joint Angles:\n", np.round(np.array(curr_joint_pos),4),"\n=-=-=-=-=-=-=\n"
+    return curr_joint_pos
+
 
 '''
 if __name__ == '__main__':

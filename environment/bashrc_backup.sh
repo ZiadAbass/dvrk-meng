@@ -144,6 +144,7 @@ alias move='roslaunch psm_moveit_config demo.launch use_rviz:=false'
 # run roscore and launch rviz for dvrk in background
 alias runall='roscore & (sleep 2; runsim)& (sleep 4; move)&'
 
+alias bye='sudo shutdown now'
 
 source /opt/ros/melodic/setup.bash
 
@@ -153,4 +154,5 @@ fi
 
 # create a backup of the bashrc file inside the project repo
 cp ~/.bashrc /media/sf_sharedvm/dvrk-meng/environment/bashrc_backup.sh
+
 
