@@ -39,6 +39,15 @@ def init_dvrk_mc():
     group = moveit_commander.MoveGroupCommander(group_name)
     return p,group
 
+# init_and_home() initialises both the dvrk and moveit_commander objects, then homes the
+# dvrk PSM to activate it and prepare it for any commands
+def init_and_home():
+    p,group = init_dvrk_mc()
+    print "Initialisation complete, will home the PSM"
+    p.home()
+    time.sleep(0.25)
+    return p,group
+
 # set_mc_start_state() uses the RobotState template to set the start position of the robot from the 
 # move_commande's perspective. It always sets the starting point of the moveit_commander to the current position of the simulated robot in the dvrk library.
 # takes in the dvrk PSM object
@@ -214,7 +223,6 @@ def read_display_dvrk_angles(p,verbose=False):
     if verbose:
         print "\n=-=-=-=-=-=-=\nCurrent Joint Angles:\n", np.round(np.array(curr_joint_pos),4),"\n=-=-=-=-=-=-=\n"
     return curr_joint_pos
-
 
 '''
 if __name__ == '__main__':

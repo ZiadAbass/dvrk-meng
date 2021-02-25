@@ -1,14 +1,19 @@
 '''
 Purpose:
-Moveit_commander has a set_position_target() function that takes in an XYZ coordinate and sets it as the goal position. 
-I want to test this out to make sure that the XYZ perspective of moveit matches that of the dvrk library.
-    o	Send PSM anywhere
-    o	Read current 3D pos through dvrk
-    o	Make that same 3D position the target through moveit (set_position_target)
-    o	Plan a traj from current position to the target with mc.
-    o	See if the robot moves.
-    o	Then plan one with a target a few cm away from current position.
-    o	Plan with mc and execute with dvrk.
+Is the arm’s orientation (AKA rotation) affected without moving the final 3 joints? 
+
+- First Test: 
+    Need to send the arm to a different 3D coordinate,  
+    Check the before/after values for the final 3 joint values. 
+    Check the before/after values for the rotation (.M of what get_current_position returns). 
+    Result: both changed 
+
+- Second test:
+    Keep the arm at same place and change values for the final 3 joints 
+    Read rotation before and after and compare. 
+    Result: Rotation changed when final 3 angles (gripper) changed. 
+
+Conclusion: Changing the final 3 joint angles changes the rotation. 
 '''
 
 # import master
