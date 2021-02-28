@@ -28,19 +28,32 @@ def find_exploration_points(psm,group,increment):
 
     return exploration_coords
 
+# check_vessel_location() simulates sending an US slice to the CVML block and receiving
+# the location of the relevant blood vessel.
+# Right now, it takes in the simulated result which we want to return.
+# Returns False if the blood vessel cannot be found
+# Otherwise, returns the distance of the vessel's center from the vertical centerline of the slice.
+def get_vessel_location(sim_result):
+    return sim_result
 
-if __name__ == '__main__':
-    # initialise and home
-    psm,group = mm.init_and_home()
 
+def start_sequence(psm,group):
     # find the coordinates of the 4 exploration points
     exp_coords = find_exploration_points(psm,group,increment=15)
-
     # go to all 4 with a fixed vertical orientation
     for idx, target_coord in enumerate(exp_coords):
         buf = "Press Enter to move to coordinate number %d" % (idx)
         raw_input(buf)
         mm.goto_xyz(psm,target_coord,6000,group,fixed_orientation='vertical')
+    # need to check the vessel's position at each of these 4 coords
+    # as soon as you explore a point at which the vessel is closer to the centerline then stop there.
+    # if 
+
+if __name__ == '__main__':
+    # initialise and home
+    psm,group = mm.init_and_home()
+
+    start_sequence(psm,group)
 
     psm.shutdown()
 
