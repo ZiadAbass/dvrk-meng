@@ -143,6 +143,8 @@ alias move_gui='roslaunch psm_moveit_config demo.launch'
 alias move='roslaunch psm_moveit_config demo.launch use_rviz:=false'
 # run roscore and launch rviz for dvrk in background
 alias runall='roscore & (sleep 2; runsim)& (sleep 4; move)&'
+# reset the running nodes
+alias rstall='killall & (sleep 3;runall)&'
 
 alias bye='sudo shutdown now'
 

@@ -48,6 +48,16 @@ def init_and_home():
     time.sleep(0.25)
     return p,group
 
+# init_dvrk_home() initialises only the dvrk object, then homes the
+# dvrk PSM to activate it and prepare it for any commands
+def init_dvrk_home():
+    # init dvrk objject
+    p = dvrk.psm('PSM1')
+    print "Initialisation complete, will home the PSM"
+    p.home()
+    time.sleep(0.25)
+    return p
+
 # set_mc_start_state() uses the RobotState template to set the start position of the robot from the 
 # move_commande's perspective. It always sets the starting point of the moveit_commander to the current position of the simulated robot in the dvrk library.
 # takes in the dvrk PSM object
@@ -58,6 +68,16 @@ def update_mc_start_state(p,group):
     # define the required start position angles
     start_state.joint_state.position = curr_joint_pos
     # start_state.is_diff = True
+    group.set_start_state(start_state)
+
+def update_mc_start_go(p,group):
+    # obtain current joint angles from dvrk (list of 6 angles)
+    curr_joint_pos = p.get_current_joint_position()
+    # print('Current joint position:', curr_joint_pos)
+    # define the required start position angles
+    start_state.joint_state.position = curr_joint_pos
+    group.set_joint_value_target(start_state)
+    group.go()
     group.set_start_state(start_state)
 
 # set_named_target_and_plan() takes in the name of a saved configuration and plans its path,
@@ -85,6 +105,16 @@ def set_XYZ_target_and_plan(goal_coords, group):
     # set a goal configuration
     print "Setting XYZ:", goal_coords
     group.set_position_target(goal_coords)
+    ### plan a traj using mc
+    traj_plan = group.plan()
+    return traj_plan
+
+# set_XYZ_target_and_plan() takes in a set of XYZ coords represnting a goal position and plans its path,
+# returning the RobotTrajectory object
+def set_pose_target_and_plan(goal_pose, group):
+    # set a goal configuration
+    print "Setting Pose:", goal_pose
+    group.set_pose_target(goal_pose)
     ### plan a traj using mc
     traj_plan = group.plan()
     return traj_plan
@@ -180,14 +210,44 @@ def goto_angle_config(p,target_angles,total_points,group):
     for pos in extended_points:
         p.move_joint(np.array(pos), interpolate = False)
 
-# goto_named_config() plans and executes a trajectory towards a given a target XYZ coordinate.
+# goto_xyz() plans and executes a trajectory towards a given a target XYZ coordinate.
 # also takes in `total_points` total number of points to include in the final trajectory after interpolation
-def goto_xyz(p,goal_coords,total_points,group):
+def goto_xyz(p,goal_coords,total_points,group,fixed_orientation=''):
     ### set current angles as starting point in mc space
     update_mc_start_state(p, group)
 
     ### set a goal position
-    traj_plan = set_XYZ_target_and_plan(goal_coords, group)
+    # if no fixed orientation is provided
+    if fixed_orientation == '':
+        traj_plan = set_XYZ_target_and_plan(goal_coords, group)
+    elif len(fixed_orientation) == 4:
+        # create a target pose with the XYZ and the provided orientation
+        target = goal_coords
+        target.extend(fixed_orientation)
+        traj_plan = set_pose_target_and_plan(target, group)
+    else:
+        print('ERROR: Provide fixed_orientation is not valid, leaving.')
+        return
+
+    # take only the position angles from the plan
+    pure_positions = extract_pos_from_plan(traj_plan)
+
+    # interpolate to obtain many intermediate points
+    extended_points = interpolate(pure_positions, total_points)
+
+    time.sleep(0.1)
+    ### use the dvrk library to follow the list of joint angles and perform the traj
+    for pos in extended_points:
+        p.move_joint(np.array(pos), interpolate = False)
+
+# goto_pose() plans and executes a trajectory towards a given a target pose (includes both XYZ and orientation).
+# also takes in `total_points` total number of points to include in the final trajectory after interpolation
+def goto_pose(p,goal_pose,total_points,group):
+    ### set current angles as starting point in mc space
+    update_mc_start_state(p, group)
+
+    ### set a goal position
+    traj_plan = set_pose_target_and_plan(goal_pose, group)
 
     # take only the position angles from the plan
     pure_positions = extract_pos_from_plan(traj_plan)
@@ -223,6 +283,14 @@ def read_display_dvrk_angles(p,verbose=False):
     if verbose:
         print "\n=-=-=-=-=-=-=\nCurrent Joint Angles:\n", np.round(np.array(curr_joint_pos),4),"\n=-=-=-=-=-=-=\n"
     return curr_joint_pos
+
+# read_display_dvrk_pose() reads and returns the PSM's full current pose 
+# from the dvrk library's perspective. Can optionally display it too if verbose is true.
+def read_display_dvrk_pose(p,verbose=False):
+    curr_pose = p.get_current_position()
+    if verbose:
+        print "\n=-=-=-=-=-=-=\nCurrent Pose:", curr_pose,"\n=-=-=-=-=-=-=\n"
+    return curr_pose
 
 '''
 if __name__ == '__main__':

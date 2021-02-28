@@ -13,15 +13,18 @@ def find_exploration_points(psm,group,increment):
     # find the arm's position in 3D
     cur_XYZ = mm.read_display_dvrk_pos(psm, verbose=False)
     # convert the increment given from mm to meters
-    inc_m = increment/1000
+    print "increment is", increment
+    inc_m = float(increment)/1000
+    print "inc_m is", inc_m
 
-    exploration_coords = []
     # +/- in Y
-    exploration_coords.append([cur_XYZ[0],cur_XYZ[1]+inc_m,cur_XYZ[2]])
-    exploration_coords.append([cur_XYZ[0],cur_XYZ[1]-inc_m,cur_XYZ[2]])
+    up_y = [cur_XYZ[0],cur_XYZ[1]+inc_m,cur_XYZ[2]]
+    down_y = [cur_XYZ[0],cur_XYZ[1]-inc_m,cur_XYZ[2]]
     # -/+ in X
-    exploration_coords.append([cur_XYZ[0]-inc_m,cur_XYZ[1],cur_XYZ[2]])
-    exploration_coords.append([cur_XYZ[0]+inc_m,cur_XYZ[1],cur_XYZ[2]])
+    down_x = [cur_XYZ[0]-inc_m,cur_XYZ[1],cur_XYZ[2]]
+    up_x = [cur_XYZ[0]+inc_m,cur_XYZ[1],cur_XYZ[2]]
+    
+    exploration_coords = [up_y, down_y, down_x, up_x]
 
     return exploration_coords
 
@@ -30,14 +33,20 @@ if __name__ == '__main__':
     # initialise and home
     psm,group = mm.init_and_home()
 
+    # get the current pose of the psm from the MC's perspective 
+    # before it's moved from the home position
+    mc_pose = group.get_current_pose()
+    vertical_orientation = mc_pose.pose.orientation.x, mc_pose.pose.orientation.y, mc_pose.pose.orientation.z, mc_pose.pose.orientation.w
+
     # find the coordinates of the 4 exploration points
     exp_coords = find_exploration_points(psm,group,increment=15)
 
-    # go to all 4
+    # print "exp_coords:\n", exp_coords[0],"\n", exp_coords[1],"\n", exp_coords[2],"\n"
+    # go to all 4 with a fixed vertical orientation
     for idx, target_coord in enumerate(exp_coords):
         buf = "Press Enter to move to coordinate number %d" % (idx)
         raw_input(buf)
-        mm.goto_xyz(psm,target_coord,6000,group)
+        mm.goto_xyz(psm,target_coord,6000,group,fixed_orientation=vertical_orientation)
 
     psm.shutdown()
 
@@ -63,5 +72,4 @@ Possible issue:
                 - List of 7 floats  [x, y, z, qx, qy, qz, qw] 
 
     So I need to convert a PyKDL.Frame into one of the 4 options shown above to make it MC compatible.
-
 '''
