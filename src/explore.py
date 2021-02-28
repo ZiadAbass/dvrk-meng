@@ -33,20 +33,14 @@ if __name__ == '__main__':
     # initialise and home
     psm,group = mm.init_and_home()
 
-    # get the current pose of the psm from the MC's perspective 
-    # before it's moved from the home position
-    mc_pose = group.get_current_pose()
-    vertical_orientation = mc_pose.pose.orientation.x, mc_pose.pose.orientation.y, mc_pose.pose.orientation.z, mc_pose.pose.orientation.w
-
     # find the coordinates of the 4 exploration points
     exp_coords = find_exploration_points(psm,group,increment=15)
 
-    # print "exp_coords:\n", exp_coords[0],"\n", exp_coords[1],"\n", exp_coords[2],"\n"
     # go to all 4 with a fixed vertical orientation
     for idx, target_coord in enumerate(exp_coords):
         buf = "Press Enter to move to coordinate number %d" % (idx)
         raw_input(buf)
-        mm.goto_xyz(psm,target_coord,6000,group,fixed_orientation=vertical_orientation)
+        mm.goto_xyz(psm,target_coord,6000,group,fixed_orientation='vertical')
 
     psm.shutdown()
 

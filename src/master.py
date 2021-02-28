@@ -25,6 +25,8 @@ import time
 start_state = RobotState()
 # define the joint names
 start_state.joint_state.name = ['psm_yaw_joint', 'psm_pitch_joint', 'psm_main_insertion_joint', 'psm_tool_roll_joint', 'psm_tool_pitch_joint', 'psm_tool_yaw_joint'] 
+# define the qx,qy,qz,qw leading to a vertical end effector orientation
+vertical_orientation = [-0.7088969395364019, 0.29921509795680007, -0.29572446227672855, 0.5661117351563785]
 
 ### Initialisations
 # init_dvrk_mc() intiialises the required objects for both the dvrk and the move_commander libraries
@@ -220,8 +222,13 @@ def goto_xyz(p,goal_coords,total_points,group,fixed_orientation=''):
     # if no fixed orientation is provided
     if fixed_orientation == '':
         traj_plan = set_XYZ_target_and_plan(goal_coords, group)
+    elif fixed_orientation == 'vertical':
+        # create a target pose with the XYZ and the default vertical orientation
+        target = goal_coords
+        target.extend(vertical_orientation)
+        traj_plan = set_pose_target_and_plan(target, group)
     elif len(fixed_orientation) == 4:
-        # create a target pose with the XYZ and the provided orientation
+        # create a target pose with the XYZ and any provided orientation
         target = goal_coords
         target.extend(fixed_orientation)
         traj_plan = set_pose_target_and_plan(target, group)
