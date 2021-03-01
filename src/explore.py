@@ -1,7 +1,6 @@
 '''
 Purpose: 
-- Send arm to a specific 3D coordinate
-- Have the arm explore 4 coordinates around it (+/- dX and +/- dY)
+- perform the algorithm described by the SearchFlow flowchart diagram.
 '''
 
 import master as mm
@@ -11,8 +10,26 @@ import master as mm
 # From the given options, it finds the one closest to the target coordinate and removes it,
 # returning a list of all the remaining options.
 def exclude_closest_coord(target, options):
-    # TODO: Do stuff
-    return options[:-1]
+    diffs = []
+    for option in options:
+        if len(option) != len(target):
+            print("Lengths in exclude_closest_coord don't match")
+            return
+        
+        # get the average difference between all individual XYZcoordinates
+        total_diff = 0
+        for idx in range(0,len(target)):
+            total_diff += abs(option[idx]-target[idx])
+        avg_diff = float(total_diff/len(target))
+        # print 'avg diff', avg_diff
+        # keep track of all the average differences
+        diffs.append(avg_diff)
+    
+    # find index of the smallest difference in distance
+    si = diffs.index(min(diffs))
+    del options[si]
+    # return the same options minus the excluded coordinate
+    return options
 
 # find_exploration_points() uses the PSM's current position and finds the 4 surrounding coordinates
 # an 'increment' mm away from the current position (in +/- X and +/- Y)
