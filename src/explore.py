@@ -114,7 +114,7 @@ def start_sequence(psm,group):
     if dv == False:
         print "Vessel is outside the probe's FOV, should continue searching"
         while dv != True:
-            # TODO: Proceed with a search algo that makes PSM scan the are
+            # TODO: Proceed with a search algo that makes PSM scan the area
             # after each search step, check for the vessel again
             dv = get_vessel_location(False)
             print "Still searching..."
@@ -167,27 +167,3 @@ if __name__ == '__main__':
     start_sequence(psm,group)
 
     psm.shutdown()
-
-
-
-'''
-The /dvrk/PSM1/position_cartesian_current topic message type is PoseStamped
-problem is that the end effector is moving too much, want to explore fixing the pose and changing just the XYZ.
-
-To do that, we can use the mc's set_pose_target() func instead of the set_position_target() function.
-
-So we want to 
-1. Read the current arm's pose (including both pos and rotation)
-2. Tweak only the XYZ part of that pose 
-3. Set the tweaked pose as the target position for the MC planner.
-
-Possible issue:
-    step 1 -> the dvrk library returns a PyKDL.Frame object reading the pose
-    step 3 -> the mc library can accept 
-                - Pose message
-                - PoseStamped message 
-                - List of 6 floats: [x, y, z, rot_x, rot_y, rot_z] 
-                - List of 7 floats  [x, y, z, qx, qy, qz, qw] 
-
-    So I need to convert a PyKDL.Frame into one of the 4 options shown above to make it MC compatible.
-'''
