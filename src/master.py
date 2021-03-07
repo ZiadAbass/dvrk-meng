@@ -101,7 +101,7 @@ def set_joint_target_and_plan(joint_config, group):
     traj_plan = group.plan()
     return traj_plan
 
-# set_XYZ_target_and_plan() takes in a set of XYZ coords represnting a goal position and plans its path,
+# set_XYZ_target_and_plan() takes in a set of XYZ coords representing a goal position and plans its path,
 # returning the RobotTrajectory object
 def set_XYZ_target_and_plan(goal_coords, group):
     # set a goal configuration
@@ -111,7 +111,7 @@ def set_XYZ_target_and_plan(goal_coords, group):
     traj_plan = group.plan()
     return traj_plan
 
-# set_XYZ_target_and_plan() takes in a set of XYZ coords represnting a goal position and plans its path,
+# set_pose_target_and_plan() takes in a pose representing a goal position and plans its path,
 # returning the RobotTrajectory object
 def set_pose_target_and_plan(goal_pose, group):
     # set a goal configuration

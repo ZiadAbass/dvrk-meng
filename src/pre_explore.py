@@ -1,7 +1,9 @@
 '''
+Created by Ziad Abass
 Purpose: 
-- Send arm to a specific 3D coordinate
-- Have the arm explore 4 coordinates around it (+/- dX and +/- dY)
+- Home the PSM
+- Generate nearby exploration points 
+- Have the arm explore these 4 coordinates around it (+/- dX and +/- dY)
 '''
 
 import master as mm
@@ -12,9 +14,7 @@ def find_exploration_points(psm,group,increment):
     # find the arm's position in 3D
     cur_XYZ = mm.read_display_dvrk_pos(psm, verbose=False)
     # convert the increment given from mm to meters
-    print "increment is", increment
     inc_m = float(increment)/1000
-    print "inc_m is", inc_m
 
     # +/- in Y
     up_y = [cur_XYZ[0],cur_XYZ[1]+inc_m,cur_XYZ[2]]
