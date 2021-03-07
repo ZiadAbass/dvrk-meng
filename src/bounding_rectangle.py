@@ -20,6 +20,7 @@ Outputs:
 
 import math
 import matplotlib.pyplot as plt
+from matplotlib.patches import Rectangle
 
 # dimensions of bounding rectangle
 rec_wid = 150
@@ -117,18 +118,34 @@ def plot_all(original_corners, rotated_corners, rotated_path):
 
     # plot the gripper location in red
     ax.scatter(gl[0], gl[1], color='red',linewidth=10.0)
-
-    # plot original rectangle in green
-    for point in original_corners:
-        ax.scatter(point[0], point[1], color='green',linewidth=10.0)
-
-    # plot rotated rectangle in blue
-    for point in rotated_corners:
-        ax.scatter(point[0], point[1], color='blue',linewidth=10.0)
     
     # plot the final path in brown
     for point in rotated_path:
         ax.scatter(point[0], point[1], color='brown',linewidth=10.0)
+    
+    # draw the original rectangle
+    for coord_idx in range (0,len(original_corners)):
+        print(coord_idx)
+        if coord_idx == len(original_corners)-1:
+            print('yalla')
+            x_values = [original_corners[coord_idx][0], original_corners[0][0]]
+            y_values = [original_corners[coord_idx][1], original_corners[0][1]]
+        else:
+            x_values = [original_corners[coord_idx][0], original_corners[coord_idx+1][0]]
+            y_values = [original_corners[coord_idx][1], original_corners[coord_idx+1][1]]
+        plt.plot(x_values, y_values, '--',linewidth=3.0,zorder=1,color='green')
+
+    # draw the rotated rectangle
+    for coord_idx in range (0,len(rotated_corners)):
+        print(coord_idx)
+        if coord_idx == len(rotated_corners)-1:
+            print('yalla')
+            x_values = [rotated_corners[coord_idx][0], rotated_corners[0][0]]
+            y_values = [rotated_corners[coord_idx][1], rotated_corners[0][1]]
+        else:
+            x_values = [rotated_corners[coord_idx][0], rotated_corners[coord_idx+1][0]]
+            y_values = [rotated_corners[coord_idx][1], rotated_corners[coord_idx+1][1]]
+        plt.plot(x_values, y_values,linewidth=7.0,zorder=1,color='blue')
 
     plt.savefig('hamada.png')   
 
