@@ -107,15 +107,15 @@ def plot_all(original_corners, rotated_corners, rotated_path):
     # initialise the plot
     ax = plt.gca()
     plt.axis('equal')
-    plt.xlim([-20,500])
-    plt.ylim([-50,500])
+    plt.xlim([-0.20,0.500])
+    plt.ylim([-0.50,0.500])
 
     # plot the gripper location in red
-    ax.scatter(gl[0], gl[1], color='red',linewidth=5.0)
+    ax.scatter(gl[0], gl[1], color='red',linewidth=3.0)
     
     # plot the final path in brown
     for point in rotated_path:
-        ax.scatter(point[0], point[1], color='brown',linewidth=5.0)
+        ax.scatter(point[0], point[1], color='brown',linewidth=3.0)
     
     # draw the original rectangle
     for coord_idx in range (0,len(original_corners)):
@@ -154,6 +154,9 @@ def main(rec_width_in,rec_height_in, gripper_location, gripper_rotation_degrees,
     # how much to rotate by (anticlockwise, 0 degrees is looking east)
     rotation_in_degrees = gripper_rotation_degrees
 
+    print "gl", gl
+    print "rec_wid", rec_wid
+
     # obtain the rectangles' bounds
     original_corners = get_bounding_rectangle(gripper_location=gl,gripper_disp=gripper_displacement)
 
@@ -174,6 +177,6 @@ def main(rec_width_in,rec_height_in, gripper_location, gripper_rotation_degrees,
 
 if __name__ == '__main__':
 
-    main(rec_width_in=150,rec_height_in=80, gripper_location=[200,200], gripper_rotation_degrees=120)
+    main(rec_width_in=0.150,rec_height_in=0.080, gripper_location=[0.200,0.200], gripper_rotation_degrees=120)
  
 
