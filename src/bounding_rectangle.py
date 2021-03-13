@@ -1,5 +1,7 @@
 '''
-This script combines the rotate_rectangle and find_path scripts
+This script constructs a rotated rectangle around a given end effector location and orientation. 
+A rotated search path is also produced which the PSM would follow as it searches for the vessel inside the box. 
+Resulting rectangle and path are plotted.
 Inputs: 
     - XY location of the end effector
     - orientation of the end effector
@@ -17,19 +19,9 @@ Outputs:
     - colour-coded plots of these outputs
 '''
 
-
 import math
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
-
-# dimensions of bounding rectangle
-rec_wid = 150
-rec_height = 80
-
-# gripper_location
-gl = [15,20]
-# how much to rotate by (anticlockwise, 0 degrees is looking east)
-rotation_in_degrees = 120
 
 # Rotate a given point by a given angle around a given origin (anticlockwise direction)
 def rotate(point, angle, origin):
@@ -59,7 +51,7 @@ def rotate_all(corners, path, degrees):
 
 # get_bounding_rectangle() finds the corners for a rectangle around a given end effect 2D coordinate
 # can optionally provide gripper_disp, defines how far along the length the gripper should be (0-1)
-def get_bounding_rectangle(gripper_location,gripper_disp=0.3):
+def get_bounding_rectangle(gripper_location,gripper_disp):
     # find the corners of the original box before rotating
     ll = (gl[0]-(gripper_disp*rec_wid), gl[1]-(0.5*rec_height))
     ul = (gl[0]-(gripper_disp*rec_wid), gl[1]+(0.5*rec_height))
@@ -71,7 +63,7 @@ def get_bounding_rectangle(gripper_location,gripper_disp=0.3):
 # get_search_path() takes in 4 corner coords for a rectangle that is not rotated
 # search_columns: number of search columns along the rectangle's width
 # height_padding: padding area on the inside of the height (0-1)
-def get_search_path(corners, search_columns=5, height_padding = 0.2):
+def get_search_path(corners, search_columns, height_padding):
     # extract individual corner locations
     ll,lr,ur,ul = corners
     
@@ -115,52 +107,73 @@ def plot_all(original_corners, rotated_corners, rotated_path):
     # initialise the plot
     ax = plt.gca()
     plt.axis('equal')
+    plt.xlim([-20,500])
+    plt.ylim([-50,500])
 
     # plot the gripper location in red
-    ax.scatter(gl[0], gl[1], color='red',linewidth=10.0)
+    ax.scatter(gl[0], gl[1], color='red',linewidth=5.0)
     
     # plot the final path in brown
     for point in rotated_path:
-        ax.scatter(point[0], point[1], color='brown',linewidth=10.0)
+        ax.scatter(point[0], point[1], color='brown',linewidth=5.0)
     
     # draw the original rectangle
     for coord_idx in range (0,len(original_corners)):
-        print(coord_idx)
         if coord_idx == len(original_corners)-1:
-            print('yalla')
             x_values = [original_corners[coord_idx][0], original_corners[0][0]]
             y_values = [original_corners[coord_idx][1], original_corners[0][1]]
         else:
             x_values = [original_corners[coord_idx][0], original_corners[coord_idx+1][0]]
             y_values = [original_corners[coord_idx][1], original_corners[coord_idx+1][1]]
-        plt.plot(x_values, y_values, '--',linewidth=3.0,zorder=1,color='green')
+        plt.plot(x_values, y_values, '--',linewidth=1.5,zorder=1,color='green')
 
     # draw the rotated rectangle
     for coord_idx in range (0,len(rotated_corners)):
-        print(coord_idx)
         if coord_idx == len(rotated_corners)-1:
-            print('yalla')
             x_values = [rotated_corners[coord_idx][0], rotated_corners[0][0]]
             y_values = [rotated_corners[coord_idx][1], rotated_corners[0][1]]
         else:
             x_values = [rotated_corners[coord_idx][0], rotated_corners[coord_idx+1][0]]
             y_values = [rotated_corners[coord_idx][1], rotated_corners[coord_idx+1][1]]
-        plt.plot(x_values, y_values,linewidth=7.0,zorder=1,color='blue')
+        plt.plot(x_values, y_values,linewidth=3.5,zorder=1,color='blue')
 
     plt.savefig('hamada.png')   
 
 
-if __name__ == '__main__':
+def main(rec_width_in,rec_height_in, gripper_location, gripper_rotation_degrees, gripper_displacement=0.3, search_columns=4, height_padding=0.2, plot=True):
+    global rec_wid
+    global rec_height
+    global gl
+    global rotation_in_degrees
+
+    # dimensions of bounding rectangle
+    rec_wid = rec_width_in
+    rec_height = rec_height_in
+    # gripper_location
+    gl = gripper_location
+    # how much to rotate by (anticlockwise, 0 degrees is looking east)
+    rotation_in_degrees = gripper_rotation_degrees
+
     # obtain the rectangles' bounds
-    original_corners = get_bounding_rectangle(gripper_location=gl)
+    original_corners = get_bounding_rectangle(gripper_location=gl,gripper_disp=gripper_displacement)
 
     # find the search path inside the rectangle
-    path = get_search_path(original_corners)
+    path = get_search_path(original_corners,search_columns=search_columns, height_padding=height_padding)
 
     # rotate according to the end effector's orientation
     rotated_corners, rotated_path = rotate_all(original_corners, path, degrees=rotation_in_degrees)
 
-    # plot the original and rotated corners, as well as the rotated path
-    plot_all(original_corners, rotated_corners, rotated_path)
+    if plot:
+        # plot the original and rotated corners, as well as the rotated path
+        plot_all(original_corners, rotated_corners, rotated_path)
+
+    # return the rotated rectangle and the new path
+    return rotated_corners, rotated_path
+
+
+
+if __name__ == '__main__':
+
+    main(rec_width_in=150,rec_height_in=80, gripper_location=[200,200], gripper_rotation_degrees=120)
  
 
