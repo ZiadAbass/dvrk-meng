@@ -11,12 +11,13 @@ end effector pose and retrieves a search path for the UPSM to follow.
 Purpose:
 Provide a fake 2D location and Z axis rotation and use bounding_rectangle to generate a rectangle as well
 as a search path. This search path is then fed to the UPSM and it should explore that box by following
-that path.
+that path in a single trajectory.
 '''
 
 import master as mm
 import bounding_rectangle as br
 import PyKDL
+import time
 
 '''
 - init and home
@@ -41,21 +42,29 @@ if __name__ == '__main__':
 
     # - provide that to bounding_rectangle and retrieve a path
     _, path = br.main(rec_width_in=0.10, rec_height_in=0.05, gripper_location=OPSM_sim_xy, gripper_rotation_degrees=OPSM_sim_rot, gripper_displacement=0.3, search_columns=4, height_padding=0.2, plot=True)
-    
+
     # - go to the first point on that path
     path_beginning = [path[0][0],path[0][1],xyz[2]]
     raw_input("press enter to go to the path's beginning")
     mm.goto_xyz(psm, goal_coords=path_beginning, total_points=3000,group=group,fixed_orientation='vertical')
 
-    # - generate a trajectory from the retrieved path
-
-    # - follow the path
-    for idx,step in enumerate(path):
-        buf = "Press Enter to move to coordinate number %d" % (idx)
-        raw_input(buf)
+    # convert 2D XY coords to 3D
+    path_3D = []
+    for step in path:
         # convert 2D into 3D using a fixed Z (height)
         goal = [step[0],step[1],xyz[2]]
-        mm.goto_xyz(psm, goal_coords=goal, total_points=2000, group=group,fixed_orientation='vertical')
+        path_3D.append(goal)
+    
+    # - follow the path with multipl goto's [OLD method]
+    # raw_input("Press enter to follow the points")
+    # for idx,step in enumerate(path_3D):
+    #     mm.goto_xyz(psm, goal_coords=goal, total_points=5000, group=group,fixed_orientation='vertical')
+    #     time.sleep(0.5)
+
+    # - generate a trajectory from the retrieved path and follow it [NEW METHOD]
+    raw_input("Press enter to follow the traj")
+    mm.goto_multiple_xyz(psm, goal_coords_list=path_3D, total_points=20000, group=group,fixed_orientation='vertical')
 
     # close
+    time.sleep(1)
     psm.shutdown()

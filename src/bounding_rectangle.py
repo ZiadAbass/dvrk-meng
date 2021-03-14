@@ -22,6 +22,7 @@ Outputs:
 import math
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
+import time
 
 # Rotate a given point by a given angle around a given origin (anticlockwise direction)
 def rotate(point, angle, origin):
@@ -116,6 +117,8 @@ def plot_all(original_corners, rotated_corners, rotated_path):
     # plot the final path in brown
     for point in rotated_path:
         ax.scatter(point[0], point[1], color='brown',linewidth=3.0)
+        time.sleep(0.5)
+        plt.savefig('hamada.png')
     
     # draw the original rectangle
     for coord_idx in range (0,len(original_corners)):
@@ -137,7 +140,7 @@ def plot_all(original_corners, rotated_corners, rotated_path):
             y_values = [rotated_corners[coord_idx][1], rotated_corners[coord_idx+1][1]]
         plt.plot(x_values, y_values,linewidth=3.5,zorder=1,color='blue')
 
-    plt.savefig('hamada.png')   
+    plt.savefig('hamada.png')  
 
 
 def main(rec_width_in,rec_height_in, gripper_location, gripper_rotation_degrees, gripper_displacement=0.3, search_columns=4, height_padding=0.2, plot=True):
@@ -154,8 +157,8 @@ def main(rec_width_in,rec_height_in, gripper_location, gripper_rotation_degrees,
     # how much to rotate by (anticlockwise, 0 degrees is looking east)
     rotation_in_degrees = gripper_rotation_degrees
 
-    print "gl", gl
-    print "rec_wid", rec_wid
+    print("gl", gl)
+    print("rec_wid", rec_wid)
 
     # obtain the rectangles' bounds
     original_corners = get_bounding_rectangle(gripper_location=gl,gripper_disp=gripper_displacement)
@@ -177,6 +180,6 @@ def main(rec_width_in,rec_height_in, gripper_location, gripper_rotation_degrees,
 
 if __name__ == '__main__':
 
-    main(rec_width_in=0.150,rec_height_in=0.080, gripper_location=[0.200,0.200], gripper_rotation_degrees=120)
+    main(rec_width_in=0.20,rec_height_in=0.200, gripper_location=[0.02,0.03], gripper_rotation_degrees=120, search_columns=2, height_padding=0.05)
  
 

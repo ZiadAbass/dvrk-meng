@@ -20,6 +20,16 @@ import rospy
 import numpy as np
 import time
 
+''' TODO's
+- find out frequency of arm to convert number of traj interpolated points to duration of traj
+- cubic smoothing for the traj
+- introduce check_bounds function for safety
+- change interpolate() when it's called form goto_list_coords to accomodate the fact that 
+    cordinates given are not equally spaced. Solution is to use the XYZ coords supplied to 
+    find a ratio of all the distances between consequetive points. The total number of interpolation
+    points is then divided according to these ratios instead of being divided equally.
+'''
+
 # create a RobotState template instead of initialising a new one each time
 # initialise a RobotState object
 start_state = RobotState()
@@ -61,12 +71,21 @@ def init_dvrk_home():
     return p
 
 # set_mc_start_state() uses the RobotState template to set the start position of the robot from the 
-# move_commande's perspective. It always sets the starting point of the moveit_commander to the current position of the simulated robot in the dvrk library.
-# takes in the dvrk PSM object
-def update_mc_start_state(p,group):
-    # obtain current joint angles from dvrk (list of 6 angles)
-    curr_joint_pos = p.get_current_joint_position()
-    # print('Current joint position:', curr_joint_pos)
+# move_commande's perspective. 
+# Unless a specific start positon (6 angles) is supplied, it sets the starting point of the 
+# moveit_commander to the current position of the simulated robot in the dvrk library.
+# takes in the dvrk dvrk and MC objects.
+def update_mc_start_state(p,group, required_start=[]):
+    # if no specific start position is given
+    if required_start == []:
+        # obtain current joint angles from dvrk (list of 6 angles)
+        curr_joint_pos = p.get_current_joint_position()
+    # if 6 initial angles are supplied then use them
+    elif len(required_start) == 6:
+        curr_joint_pos = required_start
+    else:
+        print "Invalid 'required_start' angles supplied. They should be 6 angles. Given:", required_start, "Exiting..."
+        return True
     # define the required start position angles
     start_state.joint_state.position = curr_joint_pos
     # start_state.is_diff = True
@@ -212,8 +231,12 @@ def goto_angle_config(p,target_angles,total_points,group):
     for pos in extended_points:
         p.move_joint(np.array(pos), interpolate = False)
 
-# goto_xyz() plans and executes a trajectory towards a given a target XYZ coordinate.
+# goto_xyz() plans and executes a trajectory towards a single given a target XYZ coordinate.
 # also takes in `total_points` total number of points to include in the final trajectory after interpolation
+# fixed_orientation: optional param used to define an end effector orientation. 
+#   Leave out for the Ik solver to decide own orientation
+#   Use 'vertical' to keep the end effector vertical when going anywhere,
+#   Otherwise, provide qx,qy,qz,qw to define the orientation
 def goto_xyz(p,goal_coords,total_points,group,fixed_orientation=''):
     ### set current angles as starting point in mc space
     update_mc_start_state(p, group)
@@ -245,6 +268,62 @@ def goto_xyz(p,goal_coords,total_points,group,fixed_orientation=''):
     time.sleep(0.1)
     ### use the dvrk library to follow the list of joint angles and perform the traj
     for pos in extended_points:
+        p.move_joint(np.array(pos), interpolate = False)
+
+# goto_multiple_xyz() does the same as goto_xyz.
+# Difference 
+#   Takes in a list of XYZ coords and generates a single trajectory that passes through all of them smoothly
+def goto_multiple_xyz(p,goal_coords_list,total_points,group,fixed_orientation=''):
+    ### set current angles as starting point in mc space
+    update_mc_start_state(p, group)
+
+    traj_waypoints = []
+    for goal_coords in goal_coords_list:
+        # check coordinate is valid
+        if len(goal_coords) != 3:
+            print "Invalid 3D coordinate given:", goal_coords, ". Will not perform trajectory."
+            return True
+        # TODO: Check if XYZ is within bounds
+        # reset pure_positions
+        pure_positions = []
+        # set a goal position
+        #   if no fixed orientation is provided
+        if fixed_orientation == '':
+            traj_plan = set_XYZ_target_and_plan(goal_coords, group)
+        elif fixed_orientation == 'vertical':
+            # create a target pose with the XYZ and the default vertical orientation
+            target = goal_coords
+            target.extend(vertical_orientation)
+            traj_plan = set_pose_target_and_plan(target, group)
+        elif len(fixed_orientation) == 4:
+            # create a target pose with the XYZ and any provided orientation
+            target = goal_coords
+            target.extend(fixed_orientation)
+            traj_plan = set_pose_target_and_plan(target, group)
+        else:
+            print('ERROR: Provide fixed_orientation is not valid, leaving.')
+            return
+
+        # take only the position angles from the plan
+        pure_positions = extract_pos_from_plan(traj_plan)
+
+        print("pure_positions length is", len(pure_positions))
+
+        # collect all the waypoint angles needed to visit all the XYZ coords
+        traj_waypoints.extend(pure_positions)
+
+        # set end of this path as the starting point in mc space for the next point
+        update_mc_start_state(p, group, required_start=pure_positions[-1])
+
+    # interpolate to obtain many intermediate points along the whole trajectory
+    # assumes that the points are evenly spaced
+    full_traj_points = interpolate(traj_waypoints, total_points)
+
+    time.sleep(0.1)
+    raw_input("Press enter to follow the traj")
+
+    ### use the dvrk library to follow the list of joint angles and perform the traj
+    for pos in full_traj_points:
         p.move_joint(np.array(pos), interpolate = False)
 
 # goto_pose() plans and executes a trajectory towards a given a target pose (includes both XYZ and orientation).
