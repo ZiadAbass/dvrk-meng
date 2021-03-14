@@ -157,9 +157,6 @@ def main(rec_width_in,rec_height_in, gripper_location, gripper_rotation_degrees,
     # how much to rotate by (anticlockwise, 0 degrees is looking east)
     rotation_in_degrees = gripper_rotation_degrees
 
-    print("gl", gl)
-    print("rec_wid", rec_wid)
-
     # obtain the rectangles' bounds
     original_corners = get_bounding_rectangle(gripper_location=gl,gripper_disp=gripper_displacement)
 

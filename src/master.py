@@ -14,6 +14,8 @@ from moveit_commander.conversions import pose_to_list
 from moveit_msgs.msg import RobotState 
 from sensor_msgs.msg import JointState 
 
+import cubic_smoothing as cs    # TODO: Document this <-
+
 import sys
 import copy
 import rospy
@@ -273,7 +275,8 @@ def goto_xyz(p,goal_coords,total_points,group,fixed_orientation=''):
 # goto_multiple_xyz() does the same as goto_xyz.
 # Difference 
 #   Takes in a list of XYZ coords and generates a single trajectory that passes through all of them smoothly
-def goto_multiple_xyz(p,goal_coords_list,total_points,group,fixed_orientation=''):
+#   Allows option to smooth the trajectory through cubic/spline smoothing through 'smooth' boolean.
+def goto_multiple_xyz(p,goal_coords_list,total_points,group,fixed_orientation='', smooth=True):
     ### set current angles as starting point in mc space
     update_mc_start_state(p, group)
 
@@ -319,12 +322,21 @@ def goto_multiple_xyz(p,goal_coords_list,total_points,group,fixed_orientation=''
     # assumes that the points are evenly spaced
     full_traj_points = interpolate(traj_waypoints, total_points)
 
+    # optionally smooth the trajectory
+    if smooth:
+        final_traj = cs.cubic_smooth(traj=np.array(full_traj_points), nb_kp=5)
+    else:
+        final_traj = full_traj_points
+
     time.sleep(0.1)
     raw_input("Press enter to follow the traj")
 
     ### use the dvrk library to follow the list of joint angles and perform the traj
-    for pos in full_traj_points:
+    for pos in final_traj:
         p.move_joint(np.array(pos), interpolate = False)
+    
+    return smoothed_traj
+
 
 # goto_pose() plans and executes a trajectory towards a given a target pose (includes both XYZ and orientation).
 # also takes in `total_points` total number of points to include in the final trajectory after interpolation

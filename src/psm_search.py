@@ -18,6 +18,8 @@ import master as mm
 import bounding_rectangle as br
 import PyKDL
 import time
+import cubic_smoothing as cs
+import numpy as np
 
 '''
 - init and home
@@ -28,6 +30,9 @@ import time
 - generate a trajectory from the retrieved path
 - follow the path
 '''
+
+# define number of columns we want to search through
+search_cols = 5
 
 if __name__ == '__main__':
     # - init and home
@@ -41,7 +46,7 @@ if __name__ == '__main__':
     OPSM_sim_rot = 40
 
     # - provide that to bounding_rectangle and retrieve a path
-    _, path = br.main(rec_width_in=0.10, rec_height_in=0.05, gripper_location=OPSM_sim_xy, gripper_rotation_degrees=OPSM_sim_rot, gripper_displacement=0.3, search_columns=4, height_padding=0.2, plot=True)
+    _, path = br.main(rec_width_in=0.10, rec_height_in=0.05, gripper_location=OPSM_sim_xy, gripper_rotation_degrees=OPSM_sim_rot, gripper_displacement=0.3, search_columns=search_cols, height_padding=0.2, plot=True)
 
     # - go to the first point on that path
     path_beginning = [path[0][0],path[0][1],xyz[2]]
@@ -63,7 +68,7 @@ if __name__ == '__main__':
 
     # - generate a trajectory from the retrieved path and follow it [NEW METHOD]
     raw_input("Press enter to follow the traj")
-    mm.goto_multiple_xyz(psm, goal_coords_list=path_3D, total_points=20000, group=group,fixed_orientation='vertical')
+    smoothed_traj = mm.goto_multiple_xyz(psm, goal_coords_list=path_3D, total_points=20000, group=group,fixed_orientation='vertical')
 
     # close
     time.sleep(1)
