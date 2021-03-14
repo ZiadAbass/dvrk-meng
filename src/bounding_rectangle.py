@@ -117,8 +117,6 @@ def plot_all(original_corners, rotated_corners, rotated_path):
     # plot the final path in brown
     for point in rotated_path:
         ax.scatter(point[0], point[1], color='brown',linewidth=3.0)
-        time.sleep(0.5)
-        plt.savefig('hamada.png')
     
     # draw the original rectangle
     for coord_idx in range (0,len(original_corners)):
@@ -140,7 +138,7 @@ def plot_all(original_corners, rotated_corners, rotated_path):
             y_values = [rotated_corners[coord_idx][1], rotated_corners[coord_idx+1][1]]
         plt.plot(x_values, y_values,linewidth=3.5,zorder=1,color='blue')
 
-    plt.savefig('hamada.png')  
+    plt.savefig('images/bounding_rect.png')
 
 
 def main(rec_width_in,rec_height_in, gripper_location, gripper_rotation_degrees, gripper_displacement=0.3, search_columns=4, height_padding=0.2, plot=True):

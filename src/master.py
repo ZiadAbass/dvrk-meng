@@ -59,7 +59,7 @@ def init_and_home():
     p,group = init_dvrk_mc()
     print "Initialisation complete, will home the PSM"
     p.home()
-    time.sleep(0.25)
+    time.sleep(0.1)
     return p,group
 
 # init_dvrk_home() initialises only the dvrk object, then homes the
@@ -272,11 +272,13 @@ def goto_xyz(p,goal_coords,total_points,group,fixed_orientation=''):
     for pos in extended_points:
         p.move_joint(np.array(pos), interpolate = False)
 
-# goto_multiple_xyz() does the same as goto_xyz.
-# Difference 
-#   Takes in a list of XYZ coords and generates a single trajectory that passes through all of them smoothly
-#   Allows option to smooth the trajectory through cubic/spline smoothing through 'smooth' boolean.
-def goto_multiple_xyz(p,goal_coords_list,total_points,group,fixed_orientation='', smooth=True):
+# generate_traj() take in a list of XYZ coords and generates a single trajectory that passes through all of them
+#   total_points: total number of points to include in the final trajectory after interpolation
+#   fixed_orientation: optional param used to define an end effector orientation. 
+#   Leave out for the Ik solver to decide own orientation
+#   Use 'vertical' to keep the end effector vertical when going anywhere,
+#   Otherwise, provide qx,qy,qz,qw to define the orientation
+def generate_traj(p,goal_coords_list,total_points,group,fixed_orientation=''):
     ### set current angles as starting point in mc space
     update_mc_start_state(p, group)
 
@@ -321,21 +323,19 @@ def goto_multiple_xyz(p,goal_coords_list,total_points,group,fixed_orientation=''
     # interpolate to obtain many intermediate points along the whole trajectory
     # assumes that the points are evenly spaced
     full_traj_points = interpolate(traj_waypoints, total_points)
-
-    # optionally smooth the trajectory
-    if smooth:
-        final_traj = cs.cubic_smooth(traj=np.array(full_traj_points), nb_kp=5)
-    else:
-        final_traj = full_traj_points
-
-    time.sleep(0.1)
-    raw_input("Press enter to follow the traj")
-
-    ### use the dvrk library to follow the list of joint angles and perform the traj
-    for pos in final_traj:
-        p.move_joint(np.array(pos), interpolate = False)
     
-    return smoothed_traj
+    return full_traj_points
+
+# smooth_and_play() takes in a trajectory (list of lists of 6 angles) and smooths it using
+# cubic/spline smoothing. It then has the dvrk simulated PSM execute the trajectory
+# smooth_factor defines the number of key points used for spline smoothing.
+def smooth_and_play(p, traj, smooth_factor=5):
+    # smooth the trajectory
+    smoothed_traj = cs.cubic_smooth(traj=np.array(traj), kp_count=smooth_factor)
+    time.sleep(0.1)
+    ### use the dvrk library to follow the list of joint angles and perform the traj
+    for pos in smoothed_traj:
+        p.move_joint(np.array(pos), interpolate = False)
 
 
 # goto_pose() plans and executes a trajectory towards a given a target pose (includes both XYZ and orientation).

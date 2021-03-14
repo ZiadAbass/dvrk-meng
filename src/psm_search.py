@@ -11,7 +11,7 @@ end effector pose and retrieves a search path for the UPSM to follow.
 Purpose:
 Provide a fake 2D location and Z axis rotation and use bounding_rectangle to generate a rectangle as well
 as a search path. This search path is then fed to the UPSM and it should explore that box by following
-that path in a single trajectory.
+that path in a single smooth trajectory.
 '''
 
 import master as mm
@@ -20,6 +20,7 @@ import PyKDL
 import time
 import cubic_smoothing as cs
 import numpy as np
+import pickle
 
 '''
 - init and home
@@ -33,6 +34,42 @@ import numpy as np
 
 # define number of columns we want to search through
 search_cols = 5
+# inits for recording arm's position
+from threading import Thread
+recorder = True
+log_data = []
+# record the PSMs positions for plotting
+save_recording_filepath = './files/pos_recording_goto.npy'
+
+# position_updater() runs in the background and collects the PSM's position while in operation.
+def position_updater(p):
+    global log_data
+    while recorder:
+        # find goal and real motor angles
+        curr_xyz = p.get_current_position().p
+        # append to the recorder to plot the results later
+        log_data.append(curr_xyz)
+        time.sleep(0.01)
+
+def execute_goto(psm,group, path_3D):
+    # start reading the goal+ actual positions in the background
+    logger = Thread(target=position_updater, args=[psm])
+    logger.start()
+    print('Started recording...')
+    time.sleep(0.1)
+    
+    # - follow the path with multipl goto's [OLD method]
+    raw_input("Press enter to follow the points")
+    for idx,step in enumerate(path_3D):
+        mm.goto_xyz(psm, goal_coords=step, total_points=5000, group=group,fixed_orientation='vertical')
+        time.sleep(0.1)
+    
+    # stop the position recording an save the data collected
+    recorder = False
+    logger.join()
+    np.save(save_recording_filepath, log_data)
+    print('Stopped recording, saved file.')
+
 
 if __name__ == '__main__':
     # - init and home
@@ -60,15 +97,30 @@ if __name__ == '__main__':
         goal = [step[0],step[1],xyz[2]]
         path_3D.append(goal)
     
-    # - follow the path with multipl goto's [OLD method]
-    # raw_input("Press enter to follow the points")
-    # for idx,step in enumerate(path_3D):
-    #     mm.goto_xyz(psm, goal_coords=goal, total_points=5000, group=group,fixed_orientation='vertical')
-    #     time.sleep(0.5)
-
+    #  -------------------------------------------
+    ''' IF GOTO INSTEAD OF TRAJECTORY
+    execute_goto(psm,group, path_3D)
+    '''
+    
     # - generate a trajectory from the retrieved path and follow it [NEW METHOD]
+    traj = mm.generate_traj(psm, goal_coords_list=path_3D, total_points=20000, group=group,fixed_orientation='vertical')
+
+    # start reading the goal+ actual positions in the background
+    logger = Thread(target=position_updater, args=[psm])
+    logger.start()
+    print('Started recording...')
+    time.sleep(0.1)
+
+    # smooth and execute the traj
     raw_input("Press enter to follow the traj")
-    smoothed_traj = mm.goto_multiple_xyz(psm, goal_coords_list=path_3D, total_points=20000, group=group,fixed_orientation='vertical')
+    mm.smooth_and_play(p=psm, traj=traj, smooth_factor=20)
+    time.sleep(0.2)
+    
+    # stop the position recording an save the data collected
+    recorder = False
+    logger.join()
+    np.save(save_recording_filepath, log_data)
+    print('Stopped recording, saved file.')
 
     # close
     time.sleep(1)
