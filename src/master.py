@@ -51,16 +51,16 @@ def init_dvrk_mc():
     scene = moveit_commander.PlanningSceneInterface()
     group_name = "psm_arm"
     group = moveit_commander.MoveGroupCommander(group_name)
-    return p,group
+    return p,group,scene
 
 # init_and_home() initialises both the dvrk and moveit_commander objects, then homes the
 # dvrk PSM to activate it and prepare it for any commands
 def init_and_home():
-    p,group = init_dvrk_mc()
+    p,group,scene = init_dvrk_mc()
     print "Initialisation complete, will home the PSM"
     p.home()
     time.sleep(0.1)
-    return p,group
+    return p,group,scene
 
 # init_dvrk_home() initialises only the dvrk object, then homes the
 # dvrk PSM to activate it and prepare it for any commands
@@ -100,7 +100,11 @@ def update_mc_start_go(p,group):
     # define the required start position angles
     start_state.joint_state.position = curr_joint_pos
     group.set_joint_value_target(start_state)
-    group.go()
+    traj_plan = group.plan()
+    # raw_input("press enter to execute")
+    # group.go()
+    group.execute(traj_plan)
+    # raw_input("press enter to set start state")
     group.set_start_state(start_state)
 
 # set_named_target_and_plan() takes in the name of a saved configuration and plans its path,
@@ -357,6 +361,17 @@ def goto_pose(p,goal_pose,total_points,group):
     ### use the dvrk library to follow the list of joint angles and perform the traj
     for pos in extended_points:
         p.move_joint(np.array(pos), interpolate = False)
+
+# read_display_mc_pos() reads and returns the moveit_commander's current XYZ coordinates.
+# from the MC library's perspective. Can optionally display it too if verbose is true.
+def read_display_mc_pos(g,verbose=False):
+    mc_pose = g.get_current_pose().pose.position
+    # invert X and Y as the positive direction in MC space is the oppostie of that in the dvrk space
+    curr_pos.y = mc_pose.y*-1
+    curr_pos.x = mc_pose.x*-1
+    if verbose:
+        print "\n=-=-=-=-=-=-=\nCurrent MC XYZ position:", np.round(mc_pose.x,4), np.round(mc_pose.y,4), np.round(mc_pose.z,4),"\n=-=-=-=-=-=-=\n"
+    return mc_pose
 
 # read_display_dvrk_pos() reads and returns the PSM's current XYZ coordinates 
 # from the dvrk library's perspective. Can optionally display it too if verbose is true.

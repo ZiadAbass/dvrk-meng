@@ -109,14 +109,16 @@ def plot_all(original_corners, rotated_corners, rotated_path):
     ax = plt.gca()
     plt.axis('equal')
     plt.xlim([-0.20,0.500])
-    plt.ylim([-0.50,0.500])
+    plt.ylim([-0.20,0.500])
 
+    ax.set_ylabel('Y')
+    ax.set_xlabel('X')
     # plot the gripper location in red
-    ax.scatter(gl[0], gl[1], color='red',linewidth=3.0)
+    ax.scatter(gl[0], gl[1], color='red',linewidth=1.25)
     
     # plot the final path in brown
     for point in rotated_path:
-        ax.scatter(point[0], point[1], color='brown',linewidth=3.0)
+        ax.scatter(point[0], point[1], color='brown',linewidth=1.25)
     
     # draw the original rectangle
     for coord_idx in range (0,len(original_corners)):
@@ -136,9 +138,10 @@ def plot_all(original_corners, rotated_corners, rotated_path):
         else:
             x_values = [rotated_corners[coord_idx][0], rotated_corners[coord_idx+1][0]]
             y_values = [rotated_corners[coord_idx][1], rotated_corners[coord_idx+1][1]]
-        plt.plot(x_values, y_values,linewidth=3.5,zorder=1,color='blue')
+        plt.plot(x_values, y_values,linewidth=1.25,zorder=1,color='blue')
 
-    plt.savefig('images/bounding_rect.png')
+    plt.title('Bounding box & search path for USPSM given:\nOPSM End effector Location: [0.3,0.1], Orientation: 200°')
+    plt.savefig('images/0.3,0.1,200.png')
 
 
 def main(rec_width_in,rec_height_in, gripper_location, gripper_rotation_degrees, gripper_displacement=0.3, search_columns=4, height_padding=0.2, plot=True):
@@ -175,6 +178,6 @@ def main(rec_width_in,rec_height_in, gripper_location, gripper_rotation_degrees,
 
 if __name__ == '__main__':
 
-    main(rec_width_in=0.20,rec_height_in=0.200, gripper_location=[0.02,0.03], gripper_rotation_degrees=120, search_columns=2, height_padding=0.05)
+    main(rec_width_in=0.10,rec_height_in=0.06, gripper_location=[0.3,0.1], gripper_rotation_degrees=200, search_columns=4, height_padding=0.2)
  
 
