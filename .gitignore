@@ -131,3 +131,4 @@ dmypy.json
 # ziad's own
 /src/files
 /src/images
+/diagrams/*png
