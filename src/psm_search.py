@@ -1,17 +1,25 @@
 '''
+Created by Ziad Abass
+
 Abbreviations:
 OPSM -> Operating PSM, the PSM that is controlled by the surgeon which is performing the resection.
 UPSM -> Ultrasound PSM, the PSM carrying the US probe being controlled by this system.
 
-Point in Time:
-- Just finished bounding_rectangle script which takes in an OPSM 
-end effector pose and retrieves a search path for the UPSM to follow.
-- Want to now test this using simulated OPSM end effector pose and the actual UPSM
-
-Purpose:
-Provide a fake 2D location and Z axis rotation and use bounding_rectangle to generate a rectangle as well
-as a search path. This search path is then fed to the UPSM and it should explore that box by following
+Script Purpose:
+Takes in a fake 2D location and Z axis rotation for the OPSM end effector.
+Uses the `bounding_rectangle` script to generate a rectangle and a search path within. 
+This search path is then fed to the UPSM and it should explore that box by following
 that path in a single smooth trajectory.
+
+Steps taken
+    1. Init and home the PSM
+    2. Read the PSM's 3D coordinate
+    3. Simulate a fake OPSM pose 
+    4. Provide that to bounding_rectangle and retrieve a search path
+    5. Go to the first point on that path
+    6. Generate a trajectory from the retrieved path
+    7. Smooth the generated trajectory
+    8. Execute the smoothed trajectory
 '''
 
 import master as mm
@@ -22,25 +30,21 @@ import cubic_smoothing as cs
 import numpy as np
 import pickle
 
-'''
-- init and home
-- read psm 3D coordinate
-- simulate OPSM pose 
-- provide that to bounding_rectangle and retrieve a path
-- go to the first point on that path
-- generate a trajectory from the retrieved path
-- follow the path
-'''
 
 # define number of columns we want to search through
 search_cols = 5
+
+# =========== THREAD FOR RECORDING THE PSM'S POSITION ===============
 # inits for recording arm's position
 from threading import Thread
+import time
+import numpy as np
 recorder = True
 log_data = []
-# record the PSMs positions for plotting
-save_recording_filepath = './files/pos_recording_goto.npy'
-
+# define the filename without directories or extensions
+recording_filename = "pos_rec_demo2"
+# use the filename to get the full path
+save_recording_filepath = './files/'+recording_filename+'.npy'
 # position_updater() runs in the background and collects the PSM's position while in operation.
 def position_updater(p):
     global log_data
@@ -50,30 +54,33 @@ def position_updater(p):
         # append to the recorder to plot the results later
         log_data.append(curr_xyz)
         time.sleep(0.01)
-
-def execute_goto(psm,group, path_3D):
+# start recording the PSM's XYZ coords
+def start_recording(psm):
     # start reading the goal+ actual positions in the background
     logger = Thread(target=position_updater, args=[psm])
     logger.start()
     print('Started recording...')
     time.sleep(0.1)
-    
-    # - follow the path with multipl goto's [OLD method]
-    raw_input("Press enter to follow the points")
-    for idx,step in enumerate(path_3D):
-        mm.goto_xyz(psm, goal_coords=step, total_points=5000, group=group,fixed_orientation='vertical')
-        time.sleep(0.1)
-    
+    return logger
+# stop recording the PSM's XYZ coords. 
+# Set plot to True to directly plot the recording into a PNG image with the same filename
+def stop_recording(logger, plot=False):
+    global recorder
     # stop the position recording an save the data collected
     recorder = False
     logger.join()
     np.save(save_recording_filepath, log_data)
     print('Stopped recording, saved file.')
-
+    if plot:
+        print("Will plot the recording...")
+        import read_recording as rr
+        rr.main(recording_filename, plot_title="")
+# =====================================================================
+# =====================================================================
 
 if __name__ == '__main__':
     # - init and home
-    psm,group = mm.init_and_home()
+    psm,group,_ = mm.init_and_home()
 
     # - read psm 3D coordinate
     xyz = mm.read_display_dvrk_pos(psm,verbose=False)
@@ -82,7 +89,7 @@ if __name__ == '__main__':
     OPSM_sim_xy = [xyz[0]+0.03, xyz[1]+0.02]
     OPSM_sim_rot = 40
 
-    # - provide that to bounding_rectangle and retrieve a path
+    # - provide that to bounding_rectangle and retrieve waypoints for a search path
     _, path = br.main(rec_width_in=0.10, rec_height_in=0.05, gripper_location=OPSM_sim_xy, gripper_rotation_degrees=OPSM_sim_rot, gripper_displacement=0.3, search_columns=search_cols, height_padding=0.2, plot=True)
 
     # - go to the first point on that path
@@ -98,18 +105,12 @@ if __name__ == '__main__':
         path_3D.append(goal)
     
     #  -------------------------------------------
-    ''' IF GOTO INSTEAD OF TRAJECTORY
-    execute_goto(psm,group, path_3D)
-    '''
     
-    # - generate a trajectory from the retrieved path and follow it [NEW METHOD]
+    # - generate a single trajectory that goes through all the coordinates in the retrieved path
     traj = mm.generate_traj(psm, goal_coords_list=path_3D, total_points=20000, group=group,fixed_orientation='vertical')
 
-    # start reading the goal+ actual positions in the background
-    logger = Thread(target=position_updater, args=[psm])
-    logger.start()
-    print('Started recording...')
-    time.sleep(0.1)
+    # start reading the goal + actual USPSM positions in the background
+    logger = start_recording(psm)
 
     # smooth and execute the traj
     raw_input("Press enter to follow the traj")
@@ -117,10 +118,7 @@ if __name__ == '__main__':
     time.sleep(0.2)
     
     # stop the position recording an save the data collected
-    recorder = False
-    logger.join()
-    np.save(save_recording_filepath, log_data)
-    print('Stopped recording, saved file.')
+    stop_recording(logger, plot=True)
 
     # close
     time.sleep(1)

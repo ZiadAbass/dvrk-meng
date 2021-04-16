@@ -100,7 +100,6 @@ if __name__ == '__main__':
     raw_input("Enter to move 10cm in +ve Y direction")
     mm.smooth_and_play(p=psm, traj=traj, smooth_factor=5)
 
-
     # stop the position recording an save the data collected
     stop_recording(logger, plot=False)
 

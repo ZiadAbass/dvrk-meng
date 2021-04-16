@@ -1,6 +1,13 @@
 '''
 Purpose: 
-- perform the algorithm described by the SearchFlow flowchart diagram.
+Performs the exploration algorithm described by the exploration flowchart diagram.
+
+The script contains two aspects that should ideally be communicating with other external aspects. 
+These have their own functions in this script but are only there to serve as placeholders
+until the final system is implemented that ties together the various project aspects. These are:
+    - Sending the ultrasound slice to the ML model to retrieve where the vessel is in the view, if any.
+    - Saving the ultrasound slice
+
 '''
 
 import master as mm
@@ -11,6 +18,7 @@ import master as mm
 # returning a list of all the remaining options.
 def exclude_closest_coord(target, options):
     diffs = []
+    # safety check
     for option in options:
         if len(option) != len(target):
             print("Lengths in exclude_closest_coord don't match")
@@ -43,10 +51,10 @@ def find_exploration_points(psm,group,increment, exclude_position=False):
     inc_m = float(increment)/1000
     print "inc_m is", inc_m
 
-    # +/- in Y
+    # +/- delta increment in Y
     up_y = [cur_XYZ[0],cur_XYZ[1]+inc_m,cur_XYZ[2]]
     down_y = [cur_XYZ[0],cur_XYZ[1]-inc_m,cur_XYZ[2]]
-    # -/+ in X
+    # -/+ delta increment in X
     down_x = [cur_XYZ[0]-inc_m,cur_XYZ[1],cur_XYZ[2]]
     up_x = [cur_XYZ[0]+inc_m,cur_XYZ[1],cur_XYZ[2]]
     
@@ -72,6 +80,8 @@ def get_vessel_location(sim_result):
 # the current location of the PSM.
 def save_slice():
     psm_position = mm.read_display_dvrk_pos(psm,verbose=False)
+    # TODO: Save the slice in the directory shared with the 3D reconstruction block. 
+    #   Set the filename to be the read position of the PSM
     print "Ultrasound slice saved, arm is at", psm_position
 
 # explore() loops through a given set of exploration coords.
@@ -96,17 +106,17 @@ def explore(psm, exp_coords):
             # otherwise go to the next coord
             print "Probe has moved further away from the vessel. Continueing to next exploration coord..."
             continue
-        # if the vessel is on the centerline
-        elif dv == True:
-            save_slice()
+        # making it this far means the vessel has either moved closer to
+        # the centerline or is actually on it, hence we save the slice
+        save_slice()
         # we have now moved closer to the vessel, so no need to 
         # continue looping through the current exploration coords, 
         # we should generate 3 new ones. 
-        # Return true to indicate a successful exploration
+        # Return true to indicate a successful exploration step
         return True
 
+# start_sequence() is called to initiate the exploration sequence.
 def start_sequence(psm,group):
-
     # check whether or not the vessel is in the field of view
     dv = get_vessel_location(15)
     
@@ -114,19 +124,19 @@ def start_sequence(psm,group):
     if dv == False:
         print "Vessel is outside the probe's FOV, should continue searching"
         while dv != True:
-            # TODO: Proceed with a search algo that makes PSM scan the area
-            # after each search step, check for the vessel again
-            dv = get_vessel_location(False)
+            # TODO: Proceed with the search algorithm that makes PSM scan the area
+            # should be checking for the vessel's presence in the background while searching is underway
+            dv = get_vessel_location(True)
             print "Still searching..."
+            time.sleep(0.1)
     
-    # if the vessel is on the vertical centerline
-    if dv == True:
+    # if the vessel is in the ultrasound's field of view, save the slice and save its deviation from the center
+    if dv != False:
         print "Vessel is on the centerline, saving the slice"
         save_slice()
-    else:
         # save the vessel's current deviation from the centerline
         dev_Q = get_vessel_location()
-    
+        
     # update pos_Q with the PSM's current position before sending it to exploration coords
     pos_Q = mm.read_display_dvrk_pos(psm,verbose=False)
     
@@ -156,14 +166,16 @@ def start_sequence(psm,group):
             print "Successful exploration, moved in the right direction"
         else:
             print "Unsuccessful exploration, none of the explored coords moved the probe in the right direction"
-            # TODO ?
+            # TODO: Should leave the exploration loop and return to the search loop in this case
 
 
 
 if __name__ == '__main__':
     # initialise and home
-    psm,group = mm.init_and_home()
+    psm,group,_ = mm.init_and_home()
 
+    # begin exploaration
     start_sequence(psm,group)
-
+    
+    # safely close when done
     psm.shutdown()

@@ -1,9 +1,11 @@
 '''
 Created by Ziad Abass
-Purpose: 
-- Home the PSM
-- Generate nearby exploration points 
-- Have the arm explore these 4 coordinates around it (+/- dX and +/- dY)
+
+Purpose:
+Implement a single exploration step which involves:
+1. Home the PSM
+2. Generate nearby exploration points 
+3. Have the arm explore these 4 coordinates around it (+/- dX and +/- dY) in turn
 '''
 
 import master as mm
@@ -87,16 +89,6 @@ if __name__ == '__main__':
         buf = "Press Enter to move to coordinate number %d" % (idx)
         raw_input(buf)
         mm.goto_xyz(psm,target_coord,6000,group,fixed_orientation='vertical')
-
-    # go to all 4 with a fixed vertical orientation in custom order
-    # mm.goto_xyz(psm,exp_coords[1],6000,group,fixed_orientation='vertical')
-    # time.sleep(0.3)
-    # mm.goto_xyz(psm,exp_coords[2],6000,group,fixed_orientation='vertical')
-    # time.sleep(0.3)
-    # mm.goto_xyz(psm,exp_coords[0],6000,group,fixed_orientation='vertical')
-    # time.sleep(0.3)
-    # mm.goto_xyz(psm,exp_coords[3],6000,group,fixed_orientation='vertical')
-    # time.sleep(0.1)
 
     # stop the position recording an save the data collected
     stop_recording(logger, plot=True)

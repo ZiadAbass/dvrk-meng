@@ -143,7 +143,8 @@ def plot_all(original_corners, rotated_corners, rotated_path):
     plt.title('Bounding box & search path for USPSM given:\nOPSM End effector Location: [0.3,0.1], Orientation: 200°')
     plt.savefig('images/0.3,0.1,200.png')
 
-
+# main() is the function to call to generate the bounding box.
+# The arguments are the inputs documented at the top of the scipt
 def main(rec_width_in,rec_height_in, gripper_location, gripper_rotation_degrees, gripper_displacement=0.3, search_columns=4, height_padding=0.2, plot=True):
     global rec_wid
     global rec_height
