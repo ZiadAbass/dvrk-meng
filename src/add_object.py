@@ -20,7 +20,7 @@ from threading import Thread
 recorder = True
 log_data = []
 # define the filename without directories or extensions
-recording_filename = "pos_rec_obstacle_slow"
+recording_filename = "pos_rec_obstacle_new"
 # use the filename to get the full path
 save_recording_filepath = './files/'+recording_filename+'.npy'
 # position_updater() runs in the background and collects the PSM's position while in operation.
@@ -102,7 +102,7 @@ if __name__ == '__main__':
 
 
     # stop the position recording an save the data collected
-    stop_recording(logger, plot=True)
+    stop_recording(logger, plot=False)
 
     raw_input("press enter to close")
     psm.shutdown()

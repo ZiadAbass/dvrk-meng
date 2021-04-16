@@ -1,19 +1,76 @@
-import matplotlib.pyplot as plt
+'''
+Purpose:
+Read a recorded .npy file with XYZ coordinates and plot the PSM's path
+'''
 
-path = [(0.0707, 0.0702), (0.141, 0.139), (0.212, 0.208), (0.283, 0.275), (0.354, 0.341), (0.424, 0.407), (0.495, 0.471), (0.566, 0.534), (0.636, 0.597), (0.707, 0.658), (0.778, 0.719), (0.849, 0.778), (0.919, 0.836), (0.99, 0.894), (1.06, 0.95), (1.13, 1.01), (1.2, 1.06), (1.27, 1.11), (1.34, 1.17), (1.41, 1.22), (1.48, 1.27), (1.56, 1.32), (1.63, 1.37), (1.7, 1.41), (1.77, 1.46), (1.84, 1.51), (1.91, 1.55), (1.98, 1.6), (2.05, 1.64), (2.12, 1.68), (2.19, 1.72), (2.26, 1.76), (2.33, 1.8), (2.4, 1.84), (2.47, 1.87), (2.55, 1.91), (2.62, 1.95), (2.69, 1.98), (2.76, 2.01), (2.83, 2.04), (2.9, 2.08), (2.97, 2.11), (3.04, 2.13), (3.11, 2.16), (3.18, 2.19), (3.25, 2.22), (3.32, 2.24), (3.39, 2.27), (3.46, 2.29), (3.54, 2.31), (3.61, 2.33), (3.68, 2.35), (3.75, 2.37), (3.82, 2.39), (3.89, 2.41), (3.96, 2.42), (4.03, 2.44), (4.1, 2.45), (4.17, 2.47), (4.24, 2.48), (4.31, 2.49), (4.38, 2.5), (4.45, 2.51), (4.53, 2.52), (4.6, 2.53), (4.67, 2.53), (4.74, 2.54), (4.81, 2.54), (4.88, 2.55), (4.95, 2.55), (5.02, 2.55), (5.09, 2.55), (5.16, 2.55), (5.23, 2.55), (5.3, 2.55), (5.37, 2.54), (5.44, 2.54), (5.52, 2.53), (5.59, 2.53), (5.66, 2.52), (5.73, 2.51), (5.8, 2.5), (5.87, 2.49), (5.94, 2.48), (6.01, 2.47), (6.08, 2.46), (6.15, 2.44), (6.22, 2.43), (6.29, 2.41), (6.36, 2.39), (6.43, 2.38), (6.51, 2.36), (6.58, 2.34), (6.65, 2.32), (6.72, 2.3), (6.79, 2.27), (6.86, 2.25), (6.93, 2.22), (7.0, 2.2), (7.07, 2.17), (7.14, 2.14), (7.21, 2.11), (7.28, 2.08), (7.35, 2.05), (7.42, 2.02), (7.5, 1.99), (7.57, 1.96), (7.64, 1.92), (7.71, 1.89), (7.78, 1.85), (7.85, 1.81), (7.92, 1.77), (7.99, 1.73), (8.06, 1.69), (8.13, 1.65), (8.2, 1.61), (8.27, 1.57), (8.34, 1.52), (8.41, 1.48), (8.49, 1.43), (8.56, 1.38), (8.63, 1.33), (8.7, 1.28), (8.77, 1.23), (8.84, 1.18), (8.91, 1.13), (8.98, 1.08), (9.05, 1.02), (9.12, 0.968), (9.19, 0.911), (9.26, 0.854), (9.33, 0.796), (9.4, 0.737), (9.48, 0.677), (9.55, 0.616), (9.62, 0.554), (9.69, 0.491), (9.76, 0.427), (9.83, 0.361), (9.9, 0.295), (9.97, 0.229), (10.0, 0.161), (10.1, 0.0916), (10.2, 0.0217)]
+import numpy as np
+from matplotlib import pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+import time
+import pickle 
 
-X = []
-Y = []
+# the filename without any directories or extensions
+filename = "pos_rec_obstacle"
 
-for item in path:
-    X.append(item[0])
-    Y.append(item[1])
+# plot_all() plots the original and rotated corners, as well as the rotated path
+def plot_all(path, img_file, plot_title):
+    # initialise the plot
+    
+    fig = plt.figure()
+    ax = fig.gca(projection='3d')
 
-plt.ion() # turn interactive mode on
-animated_plot = plt.plot(X, Y, 'ro')[0]
+    # make sure the points don't override the plane
+    ax = plt.gca()
 
-for i in range(len(X)):
-    animated_plot.set_xdata(X[0:i])
-    animated_plot.set_ydata(Y[0:i])
-    plt.draw()
-    plt.pause(0.1)
+    plt.axis('equal')
+
+    # add axes limits
+    # plt.xlim([-0.20,0.500])
+    # plt.ylim([-0.50,0.500])
+
+    # plot the final path in blue
+    for point in path:
+        ax.scatter(point[0], point[1], point[2], color='blue',linewidth=5.0)
+    
+    # plot a spherical obstacle
+    # ax = fig.add_subplot(111, projection='3d')
+    # Make data
+    u = np.linspace(0, 2 * np.pi, 100)
+    v = np.linspace(0, np.pi, 100)
+    x = 0.05 + (0.025 * np.outer(np.cos(u), np.sin(v)))
+    y = 0.05 + (0.025 * np.outer(np.sin(u), np.sin(v)))
+    z = (0.025 * np.outer(np.ones(np.size(u)), np.cos(v)))
+    # Plot the surface
+    ax.plot_surface(x, y, z, color='green')
+
+    # include a title if provided
+    plt.title("Trajectory Recording with Obstacle Present")
+    
+    ax.set_xlabel('X axis')
+    ax.set_ylabel('Y axis')
+    ax.set_zlabel('Z axis')
+
+    # plt.savefig('images/pos_rec_obstacle.png')  
+    # plt.savefig(img_file)
+    plt.show()
+
+def main(filename, plot_title=''):
+    print "About to plot", filename
+    # convert filename into npy path
+    npy_file = "./files/"+filename+".npy"
+    # convert filename into png path for saving final result
+    img_file = "./images/"+filename+".png"
+    REC = np.load(npy_file, allow_pickle=True)
+
+    # convert 2D to 3D with constant Z
+    three_d = []
+    for coord in REC:
+        new_coord = [coord[0], coord[1], 0]
+        three_d.append(new_coord)
+    
+    plot_all(three_d, img_file, plot_title)
+
+if __name__ == '__main__':
+    main(filename, plot_title="")
+
+    

@@ -3,8 +3,8 @@ This script constructs a rotated rectangle around a given end effector location 
 A rotated search path is also produced which the PSM would follow as it searches for the vessel inside the box. 
 Resulting rectangle and path are plotted.
 Inputs: 
-    - XY location of the end effector
-    - orientation of the end effector
+    - XY location of the OPSM end effector
+    - orientation of the OPSM end effector
     - dimension of the required bounding rectangle
     - [optional] how far along the rectangle we want the gripper to be (gripper_disp)
     - [optional] padding area on the inside of the height (0-1) (height_padding)
