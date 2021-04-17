@@ -1,5 +1,7 @@
 '''
-Playing around with the dvrk library for the first time
+Created by Ziad Abass
+
+Experimenting with the dvrk-ros python library to explore its functions.
 '''
 
 import dvrk
@@ -16,26 +18,6 @@ p.home()
 # /-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-
 # /-/-/-/-/-/-/-/-/-/ Reading from the arm /-/-/-/-/-/-/-/-/-/
 # /-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-
-''' (from the API - arm.py)
-Current vs Desired position
-===========================
-The arm controller can provide two different positions at any given
-time.  The current position is the position measured by the sensors
-(in most cases, encoders).  This position defines the physical
-position of the system.  The desired joint position is the position
-sent to the low level controller (e.g. `PID
-<https://en.wikipedia.org/wiki/PID_controller>`_).  The desired
-cartesian position is calculted using the desired joint position.
-When using a `trajectory
-<http://ttuadvancedrobotics.wikidot.com/trajectory-planning-for-point-to-point-motion>`_,
-the desired position is not the final goal but the last set point
-generated for the trajectory.
-Desired positions might differ from the physical positions due to
-`forces (gravity, friction, ...) <https://en.wikipedia.org/wiki/Force>`_ applied on the arm.  When
-implementing an incremental move, one should always use the last
-desired position.  If one needs to track the arm, it is better to
-use the current position.
-'''
 
 raw_input('Press enter to retrieve current info')
 # retrieve current info 
@@ -72,26 +54,6 @@ print('Desired position:', des_pos)
 # /-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-
 # -/-/-/-/-/-/-/-/-/-/-/ Moving the arm /-/-/-/-/-/-/-/-/-/-/-
 # /-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-
-''' (from the API - arm.py)
-Interpolation
-=============
-If the `interpolation` flag is set to `True` (default), the arm
-controller will use a `trajectory generator
-<http://ttuadvancedrobotics.wikidot.com/trajectory-planning-for-point-to-point-motion>`_
-to create set points between the current position and the position
-requested by the user.  If your desired position is "far" from the
-current position, you should always set the `interpolate` flag to
-`True`.
-The only case where you should override the default and set
-`interpolate` to `False` is if you are sending positions close to each
-other.  For example, when `tele-operating
-<https://en.wikipedia.org/wiki/Teleoperation>`_, all the master
-positions you will receive will define a continuous trajectory with
-positions close to each other.
-It is important to note that when `interpolate` is set to `False`,
-sending a new goal that is far from the last desired position will
-likely trigger a `PID tracking error <https://en.wikipedia.org/wiki/PID_controller>`_.
-'''
 
 # Moving in joint space
 # `move` is absolute (SI units) (Absolute move in joint space)

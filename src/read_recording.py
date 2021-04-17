@@ -1,7 +1,7 @@
 '''
 Purpose:
-Read a recorded .npy file with XYZ coordinates and plot the PSM's path.
-Can plot on either a 2D plane (XY) or a 3D plane (XYZ)
+    Read a recorded .npy file with XYZ coordinates and plot the PSM's path.
+    Can plot on either a 2D plane (XY) or a 3D plane (XYZ)
 '''
 
 import numpy as np

@@ -1,11 +1,18 @@
 '''
 Created by Ziad Abass
-Serves as an internal API for me to interface with both the dvrk and moveit_commander libraries together
+
+* Serves as an internal API for this project
+* Not to be run on its own, but should be imported into other scripts and have its functions called.
+* Includes the most essential functions built throughout the project, including:
+    - initialising the dvrk-ros and moveit class objects
+    - initialising the PSM in simulation
+    - generating trajectories
+    - interfacing with both the dvrk and moveit_commander libraries together
+    - communicating with the script for trajectory smoothing
 '''
 
-# import both dvrk and moveit_commander (MC)
-import dvrk
 
+import dvrk
 import moveit_commander
 import moveit_msgs.msg
 import geometry_msgs.msg
@@ -13,26 +20,14 @@ from std_msgs.msg import String
 from moveit_commander.conversions import pose_to_list
 from moveit_msgs.msg import RobotState 
 from sensor_msgs.msg import JointState 
-
-import cubic_smoothing as cs    # TODO: Document this <-
-
+import cubic_smoothing as cs
 import sys
 import copy
 import rospy
 import numpy as np
 import time
 
-''' TODO's
-- find out frequency of arm to convert number of traj interpolated points to duration of traj
-- cubic smoothing for the traj
-- introduce check_bounds function for safety
-- change interpolate() when it's called form goto_list_coords to accomodate the fact that 
-    cordinates given are not equally spaced. Solution is to use the XYZ coords supplied to 
-    find a ratio of all the distances between consequetive points. The total number of interpolation
-    points is then divided according to these ratios instead of being divided equally.
-'''
-
-# create a RobotState template instead of initialising a new one each time
+# create a RobotState template instead of initialising a new one each time ------------------
 # initialise a RobotState object
 start_state = RobotState()
 # define the joint names
@@ -405,32 +400,7 @@ def read_display_dvrk_pose(p,verbose=False):
         print "\n=-=-=-=-=-=-=\nCurrent Pose:", curr_pose,"\n=-=-=-=-=-=-=\n"
     return curr_pose
 
-'''
-if __name__ == '__main__':
-    # initialise the required objects
-    p,group = init_dvrk_mc()
 
-    ### move robot to home position
-    raw_input('Initialisation completed. Press ENTER to home the PSM')
-    p.home()
-    time.sleep(1)
-
-    # ------------- # GO TO ZRANDOM # ------------- #
-    goto_named_config(p,'zrandom', 7000,group)
-
-    # ------------- # GO TO ZHOME # ------------- #
-    # goto_named_config(p,'zhome', 7000)
-
-    # ------------- # GO TO ANGLE # ------------- #
-    new_goal = [0,0,0,0,0,0]
-    goto_angle_config(p,new_goal,7000, group)
-
-    # ------------- # ---------- # ------------- #
-
-    raw_input('Press enter to shutdown')
-    ### Stop providing power to the arm
-    p.shutdown()
-'''
 
 
 

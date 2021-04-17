@@ -3,9 +3,9 @@ Created by Ziad Abass
 
 Purpose:
 Implement a single exploration step which involves:
-1. Home the PSM
-2. Generate nearby exploration points 
-3. Have the arm explore these 4 coordinates around it (+/- dX and +/- dY) in turn
+    1. Home the PSM
+    2. Generate nearby exploration points 
+    3. Have the arm explore these 4 coordinates around it (+/- dX and +/- dY) in turn
 '''
 
 import master as mm
@@ -54,8 +54,10 @@ def stop_recording(logger, plot=False):
 # =====================================================================
 # =====================================================================
 
-# find_exploration_points() uses the PSM's current position and finds the 4 surrounding coordinates
-# an 'increment' mm away from the current position (in +/- X and +/- Y)
+'''
+find_exploration_points() uses the PSM's current position and finds the 4 surrounding coordinates
+an 'increment' mm away from the current position (in +/- X and +/- Y)
+'''
 def find_exploration_points(psm,group,increment):
     # find the arm's position in 3D
     cur_XYZ = mm.read_display_dvrk_pos(psm, verbose=False)
@@ -70,7 +72,6 @@ def find_exploration_points(psm,group,increment):
     up_x = [cur_XYZ[0]+inc_m,cur_XYZ[1],cur_XYZ[2]]
     
     exploration_coords = [up_y, down_y, down_x, up_x]
-
     return exploration_coords
 
 
@@ -94,27 +95,3 @@ if __name__ == '__main__':
     stop_recording(logger, plot=True)
         
     psm.shutdown()
-
-
-
-'''
-The /dvrk/PSM1/position_cartesian_current topic message type is PoseStamped
-problem is that the end effector is moving too much, want to explore fixing the pose and changing just the XYZ.
-
-To do that, we can use the mc's set_pose_target() func instead of the set_position_target() function.
-
-So we want to 
-1. Read the current arm's pose (including both pos and rotation)
-2. Tweak only the XYZ part of that pose 
-3. Set the tweaked pose as the target position for the MC planner.
-
-Possible issue:
-    step 1 -> the dvrk library returns a PyKDL.Frame object reading the pose
-    step 3 -> the mc library can accept 
-                - Pose message
-                - PoseStamped message 
-                - List of 6 floats: [x, y, z, rot_x, rot_y, rot_z] 
-                - List of 7 floats  [x, y, z, qx, qy, qz, qw] 
-
-    So I need to convert a PyKDL.Frame into one of the 4 options shown above to make it MC compatible.
-'''

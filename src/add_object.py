@@ -1,12 +1,22 @@
 '''
+Created by Ziad Abass
+
 Purpose:
-- add an object to the moveit planning scene environment
-- check the object was actually added through the GUI
-- give the PSM a goal location that would normally have the PSM collide with the object on the way
-- have the PSM follow that trajectory and record its position while it does
-- plot the recorded path of the PSM afterwards
-- exclude the code that adds the obstacle and send the arm to the same goal location
-- plot the recorded path and check whether or not having the obstacle present had an impact on the generate trajectory.
+Demonstrate both adding obstacles to the scene programmatically and PSM collision avodiance.
+
+Sets a goal position for the PSM and adds an obstacle to the moveit planning scene that is in the PSM's direct route to the goal position.
+A trajectory is then generated, smoothed and executed to see if the PSM would collide with it.
+The movement is recorded using the parallel thread method and plotted results can be found in the report.
+The same is then done without adding the obstacle to make sure that the obstacle's presence was the factor making the difference. 
+
+Steps taken:
+    - add an object to the moveit planning scene environment
+    - check the object was actually added through the GUI
+    - give the PSM a goal location that would normally have the PSM collide with the object on the way
+    - have the PSM follow that trajectory and record its position while it does
+    - plot the recorded path of the PSM afterwards
+    - exclude the code that adds the obstacle and send the arm to the same goal location
+    - plot the recorded path and check whether or not having the obstacle present had an impact on the generate trajectory.
 '''
 
 import master as mm
@@ -56,22 +66,32 @@ def stop_recording(logger, plot=False):
 # =====================================================================
 # =====================================================================
 
-
+'''
+add_sphere() adds a spherical shape to moveit's planning scene
+Arguments
+    - scene: the initialised moveit PlanningSceneInterface()
+    - frame_id: the ID of the existing PSM link relative to which the position of the added object is defined
+    - object_name: a unique name for the object added to the scene
+'''
 def add_sphere(scene, frame_id, object_name):
-    box_pose = geometry_msgs.msg.PoseStamped()
-    # box_pose.header.frame_id = "psm_tool_tip_link"
-    box_pose.header.frame_id = frame_id
-    # box_pose.pose.orientation.w = 1.0
-    # box_pose.pose.position.z = 0.11 # above the psm_tool_tip_link frame
-    x_in = -0.05#float(raw_input("enter required X"))
-    y_in = 0#float(raw_input("enter required Y"))
-    z_in = -0.05#float(raw_input("enter required Z"))
+    sphere_pose = geometry_msgs.msg.PoseStamped()
+    sphere_pose.header.frame_id = frame_id
+    
+    # set pre-defined XYZ relative location for the object ----------
+    x_in = -0.05    #float(raw_input("enter required X"))
+    y_in = 0        #float(raw_input("enter required Y"))
+    z_in = -0.05    #float(raw_input("enter required Z"))
 
-    box_pose.pose.position.x = x_in
-    box_pose.pose.position.y = y_in
-    box_pose.pose.position.z = z_in
+    # OR ask user to define XYZ relative location for the object ----------
+    # x_in = float(raw_input("enter required X"))
+    # y_in = float(raw_input("enter required Y"))
+    # z_in = loat(raw_input("enter required Z"))
 
-    scene.add_sphere(object_name, box_pose, radius=0.025)
+    sphere_pose.pose.position.x = x_in
+    sphere_pose.pose.position.y = y_in
+    sphere_pose.pose.position.z = z_in
+
+    scene.add_sphere(object_name, sphere_pose, radius=0.025)
 
 if __name__ == '__main__':
     # init and home
@@ -83,14 +103,14 @@ if __name__ == '__main__':
     # read psm 3D coordinate
     _ = mm.read_display_dvrk_pos(psm,verbose=True)
 
-    # add boxes
+    # add object(s)
     raw_input("Adding the sphere...")
     add_sphere(scene,frame_id="psm_tool_tip_link", object_name="sphere1")
 
     # generate a trajectory which would normall hit the obstacle in the way
     cur = mm.read_display_dvrk_pos(psm)
-    # want to move 10cm in positive Y
-    # mm.goto_xyz(p=psm,goal_coords=[cur[0]-0.1, cur[1]-0.1, cur[2]], total_points=5000, group=group, fixed_orientation="vertical")
+    
+    # set a goal position to move diagonally (10cm in negative Y and 10cm in negative X)
     traj = mm.generate_traj(p=psm,goal_coords_list=[[cur[0]-0.1, cur[1]-0.1, cur[2]]],total_points=5000,group=group,fixed_orientation='vertical')
     
     # start reading the goal+ actual positions in the background

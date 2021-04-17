@@ -1,4 +1,6 @@
 '''
+Created by Ziad Abass
+
 This script constructs a rotated rectangle around a given end effector location and orientation. 
 A rotated search path is also produced which the PSM would follow as it searches for the vessel inside the box. 
 Resulting rectangle and path are plotted.
@@ -24,7 +26,9 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 import time
 
-# Rotate a given point by a given angle around a given origin (anticlockwise direction)
+'''
+Rotate a given point by a given angle around a given origin (anticlockwise direction)
+'''
 def rotate(point, angle, origin):
     ox, oy = origin
     px, py = point
@@ -32,8 +36,10 @@ def rotate(point, angle, origin):
     qy = oy + math.sin(angle) * (px - ox) + math.cos(angle) * (py - oy)
     return qx, qy
 
-# rotate_all() takes in the corners and path for a rectangle that has not been rotated yet
-# it rotates all the points about the position of the end effector anticlockwise by the given angle in degrees
+'''
+rotate_all() takes in the corners and path for a rectangle that has not been rotated yet.
+It rotates all the points about the position of the end effector anticlockwise by the given angle in degrees
+'''
 def rotate_all(corners, path, degrees):
     # convert angle of rotation from degrees to radians
     theta = math.radians(degrees)
@@ -50,8 +56,10 @@ def rotate_all(corners, path, degrees):
     
     return corners_rotated, path_rotated
 
-# get_bounding_rectangle() finds the corners for a rectangle around a given end effect 2D coordinate
-# can optionally provide gripper_disp, defines how far along the length the gripper should be (0-1)
+'''
+get_bounding_rectangle() finds the corners for a rectangle around a given end effect 2D coordinate
+can optionally provide gripper_disp, defines how far along the length the gripper should be (0-1)
+'''
 def get_bounding_rectangle(gripper_location,gripper_disp):
     # find the corners of the original box before rotating
     ll = (gl[0]-(gripper_disp*rec_wid), gl[1]-(0.5*rec_height))
@@ -61,9 +69,12 @@ def get_bounding_rectangle(gripper_location,gripper_disp):
     original = [ll,lr,ur,ul]    
     return original
 
-# get_search_path() takes in 4 corner coords for a rectangle that is not rotated
-# search_columns: number of search columns along the rectangle's width
-# height_padding: padding area on the inside of the height (0-1)
+'''
+get_search_path() takes in 4 corner coords for a rectangle that is not rotated
+Arguments:
+    - search_columns: number of search columns along the rectangle's width
+    - height_padding: padding area on the inside of the height (0-1)
+'''
 def get_search_path(corners, search_columns, height_padding):
     # extract individual corner locations
     ll,lr,ur,ul = corners
@@ -103,7 +114,9 @@ def get_search_path(corners, search_columns, height_padding):
         
     return ordered_path
 
-# plot_all() plots the original and rotated corners, as well as the rotated path
+'''
+plot_all() plots the original and rotated corners, as well as the rotated path
+'''
 def plot_all(original_corners, rotated_corners, rotated_path):
     # initialise the plot
     ax = plt.gca()
@@ -143,8 +156,10 @@ def plot_all(original_corners, rotated_corners, rotated_path):
     plt.title('Bounding box & search path for USPSM given:\nOPSM End effector Location: [0.3,0.1], Orientation: 200°')
     plt.savefig('images/0.3,0.1,200.png')
 
-# main() is the function to call to generate the bounding box.
-# The arguments are the inputs documented at the top of the scipt
+'''
+main() is the function to call to generate the bounding box.
+The arguments are the inputs documented at the top of the scipt
+'''
 def main(rec_width_in,rec_height_in, gripper_location, gripper_rotation_degrees, gripper_displacement=0.3, search_columns=4, height_padding=0.2, plot=True):
     global rec_wid
     global rec_height
