@@ -37,7 +37,7 @@ I also created a system that considers the location that the surgeon is currentl
 
 This repository contains all the code I developed for the control system module I was in charge of, as well as all links to all the configuration files required. All the work was done in simulation using the dVRK Patient Side Manipulator (PSM).
 
-This README file contains advice on setting up the environment and tools necessary. The actual code can be found in the `src/` directory, and is well documented there.
+This README file contains advice on setting up the environment and tools necessary. The actual code can be found in the `src/` directory, along with another readme that will guide you through some details of what's there.
 
 <br/>
 

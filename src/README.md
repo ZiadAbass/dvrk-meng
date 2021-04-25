@@ -16,11 +16,15 @@ Here is a breif overview of what each script here is for.
 - `cubic_smoothing.py`: Perform cubic spline interpolation on a given set of points that form a trajectory to smooth it out. Can also interpolate to output a desired number of points for the trajectory.
 - `pre_explore.py`: Implements a single exploration step. A more basic version of `psm_explore.py`.
 - `psm_explore.py`: Performs the exploration algorithm described by the following flowchart:
+
 <img src="../diagrams/explorationAlgorithm.png"
      height=400/>
+
 - `psm_search.py`: Takes in a fake 2D location and Z axis rotation for the OPSM end effector. Uses the `bounding_rectangle` script to generate a rectangle and a search path within. This search path is then fed to the UPSM and it should explore that box by following that path in a single smooth trajectory.
+
 <img src="../diagrams/searchAlgorithm.png"
      height=400/>
+
 - `read_recording.py`: Read a recorded .npy file with XYZ coordinates and plot the PSM's path. Can plot on either a 2D plane (XY) or a 3D plane (XYZ).
 - `dvrk_testbench.py`: Experimenting with the dvrk-ros python library to explore its functions.
 
