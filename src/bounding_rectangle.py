@@ -153,7 +153,7 @@ def plot_all(original_corners, rotated_corners, rotated_path):
             y_values = [rotated_corners[coord_idx][1], rotated_corners[coord_idx+1][1]]
         plt.plot(x_values, y_values,linewidth=1.25,zorder=1,color='blue')
 
-    plt.title('Bounding box & search path for USPSM given:\nOPSM End effector Location: [0.3,0.1], Orientation: 200°')
+    plt.title('Bounding box & search path for USPSM given:\nOPSM End effector Location: [0.3,0.1], Orientation: 200 degrees')
     plt.savefig('images/0.3,0.1,200.png')
 
 '''
@@ -194,6 +194,7 @@ def main(rec_width_in,rec_height_in, gripper_location, gripper_rotation_degrees,
 
 if __name__ == '__main__':
 
-    main(rec_width_in=0.10,rec_height_in=0.06, gripper_location=[0.3,0.1], gripper_rotation_degrees=200, search_columns=4, height_padding=0.2)
+    corners, path = main(rec_width_in=0.10,rec_height_in=0.06, gripper_location=[0.3,0.1], gripper_rotation_degrees=200, search_columns=4, height_padding=0.2)
+    print('path is', path)
  
 
