@@ -112,7 +112,7 @@ I avoided running the RViz GUI as it slowed down the ubuntu virtual machine with
 
 ## Aliases
 
-If you are lazy as me, you'll enjoy these aliases I used to streamline calling the commands to spin up the dvrk and moveit simulations. Aliases are basically command line shortcuts which you can add to your `~/.bashrc` file.
+If you are lazy as me, you'll enjoy these aliases I used to streamline calling the commands to spin up the dvrk and moveit simulations. Aliases are basically command line shortcuts which you can add to your `~/.bashrc` file. You can find my full list of aliases by viewing the complete `.bashrc` file I used in this study [here](environment/)
 ```
 # Run the DVRK simulation with the default JSON
 alias runsim='roslaunch dvrk_robot dvrk_arm_rviz.launch arm:=PSM1 config:=/home/ziad/catkin_ws/src/cisst-saw/sawIntuitiveResearchKit/share/console-PSM1_KIN_SIMULATED.json'
