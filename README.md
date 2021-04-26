@@ -69,7 +69,10 @@ roslaunch dvrk_robot dvrk_arm_rviz.launch arm:=PSM1 config:=/home/ziad/catkin_ws
 ```
 This should launch two GUIs - one with RViz showing the simulated PSM, and a QT window showing graphs that describe the motion of the PSM. If you see these then you're on the right track!
 
-<!-- <image of GUIS> -->
+
+<img src="diagrams/guis.png"
+     height=300/>
+
 
 <br/>
 
